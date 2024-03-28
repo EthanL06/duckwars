@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Fredoka";
+  src: url("./fonts/Fredoka-Light.ttf") format("truetype");
+  font-weight: 300;
+}
+
+@font-face {
+  font-family: "Fredoka";
+  src: url("./fonts/Fredoka-Regular.ttf") format("truetype");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Fredoka";
+  src: url("./fonts/Fredoka-Medium.ttf") format("truetype");
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: "Fredoka";
+  src: url("./fonts/Fredoka-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: "Fredoka";
+  src: url("./fonts/Fredoka-Bold.ttf") format("truetype");
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: "Rubik Mono One";
+  src: url("./fonts/RubikMonoOne-Regular.ttf") format("truetype");
+  font-weight: 400;
+}
+
+@layer base {
+  body {
+    @apply text-black;
+  }
+}
+
+@layer utilities {
+  .debug {
+    @apply outline outline-1 outline-red-500;
+  }
+
+  .outline-animated {
+    animation: outline 2s ease-in-out infinite;
+  }
+
+  @keyframes outline {
+    0%,
+    100% {
+      outline-color: rgba(22, 85, 92, 1);
+    }
+    50%,
+    70% {
+      outline-color: rgba(22, 85, 92, 0.65);
+    }
+  }
+
+  .bubble {
+    animation: bubble 2s linear infinite;
+  }
+
+  @keyframes bubble {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+  }
+}
