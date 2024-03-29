@@ -1,39 +1,46 @@
 import PlacementCell from "./cells/placement-cell";
 import { cn } from "../../lib/utils";
-import { MoveShipContext } from "../../context/MoveShipContext";
-import { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { GameContext } from "../../context/GameContext";
 import GameCell from "./cells/game-cell";
+import { Cell } from "../../logic";
 
 type GameBoardProps = {
-  /**
-   * If true, the board will be rendered as a game board instead of a placement board
-   */
-  isGame?: boolean;
   className?: string;
 };
 
-const GameBoard = ({ isGame = false, className }: GameBoardProps) => {
-  const { selectedCell, board } = useContext(GameContext);
-  const { selectedCells } = useContext(MoveShipContext);
+const GameBoard = ({ className }: GameBoardProps) => {
+  const { board, state } = useContext(GameContext);
+  const [clickedCell, setClickedCell] = useState<Cell | null>(null);
+  const [selectedCells, setSelectedCells] = useState<Cell[]>([]);
+  const [isMoving, setIsMoving] = useState(false);
 
-  const isSelected = (x: number, y: number) => {
-    if (isGame) {
-      return selectedCell?.x === x && selectedCell?.y === y;
+  const renderCell = (x: number, y: number) => {
+    switch (state.state) {
+      case "placement":
+        return (
+          <PlacementCell
+            x={x}
+            y={y}
+            isSelected={selectedCells.some(
+              (cell) => cell.x === x && cell.y === y,
+            )}
+            setSelectedCells={setSelectedCells}
+            selectedShip={selectedCells[0]?.ship || null}
+            setIsMoving={setIsMoving}
+            isMoving={isMoving}
+            setClickedCell={setClickedCell}
+            clickedCell={clickedCell}
+          />
+        );
+      case "game":
+        return <GameCell x={x} y={y} />;
     }
-
-    return selectedCells?.some((cell) => cell.x === x && cell.y === y) || false;
   };
 
-  const renderCell = (x: number, y: number, key: number | string) => {
-    if (isGame) {
-      return <GameCell key={key} x={x} y={y} />;
-    }
-
-    return (
-      <PlacementCell key={key} x={x} y={y} isSelected={isSelected(x, y)} />
-    );
-  };
+  if (board === undefined) {
+    return null;
+  }
 
   return (
     <div
@@ -42,13 +49,15 @@ const GameBoard = ({ isGame = false, className }: GameBoardProps) => {
         className,
       )}
     >
-      {board.cells.map((row, i) => (
+      {board.map((row, i) => (
         <div
           key={i}
           className="flex w-full gap-[1px] min-[200px]:gap-0.5 min-[250px]:gap-1 "
         >
           {row.map((cell, j) => (
-            <>{renderCell(i, j, cell.id)}</>
+            <React.Fragment key={`${i}-${j}`}>
+              {renderCell(i, j)}
+            </React.Fragment>
           ))}
         </div>
       ))}

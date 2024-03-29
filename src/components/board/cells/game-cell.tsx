@@ -13,15 +13,15 @@ type GameCellProps = {
 };
 
 const GameCell = ({ x, y }: GameCellProps) => {
-  const { board, selectedCell, setSelectedCell, gamePhase } =
-    useContext(GameContext);
+  const { board, selectedCell, setSelectedCell } = useContext(GameContext);
 
   const attrs = useLongPress(() => {}, {
     onFinish: (event) => {
       if (isCellSelected()) {
-        console.log("Fire!");
+        Rune.actions.bombCell(board[x][y]);
+        setSelectedCell(null);
       } else {
-        setSelectedCell(board.cells[x][y]);
+        setSelectedCell(board[x][y]);
       }
     },
     threshold: 500,
@@ -36,9 +36,9 @@ const GameCell = ({ x, y }: GameCellProps) => {
       return <img className="size-full" src={Target} alt="target" />;
     }
 
-    if (gamePhase !== "player") return "";
+    // if (gamePhase !== "player") return "";
 
-    switch (board.cells[x][y].state) {
+    switch (board[x][y].state) {
       case "hit":
         return <img src={Hit} alt="hit" />;
       case "miss":
@@ -49,7 +49,7 @@ const GameCell = ({ x, y }: GameCellProps) => {
   };
 
   const onCellClick = () => {
-    setSelectedCell(board.cells[x][y]);
+    setSelectedCell(board[x][y]);
   };
 
   return (
