@@ -1,9 +1,12 @@
 import PlacementCell from "./cells/placement-cell";
-import { cn } from "../../lib/utils";
-import React, { useContext, useEffect, useState } from "react";
+import { cn, duckSoundSpriteMap } from "../../lib/utils";
+import React, { useContext, useState } from "react";
 import { GameContext } from "../../context/GameContext";
 import GameCell from "./cells/game-cell";
 import { Cell } from "../../logic";
+import useSound from "use-sound";
+import rubberDuckSound from "../../assets/sfx/rubber_duck.wav";
+import Event from "../events/hit";
 
 type GameBoardProps = {
   className?: string;
@@ -14,9 +17,12 @@ const GameBoard = ({ className }: GameBoardProps) => {
   const [clickedCell, setClickedCell] = useState<Cell | null>(null);
   const [selectedCells, setSelectedCells] = useState<Cell[]>([]);
   const [isMoving, setIsMoving] = useState(false);
+  const [play] = useSound(rubberDuckSound, {
+    sprite: duckSoundSpriteMap,
+  });
 
   const renderCell = (x: number, y: number) => {
-    switch (state.state) {
+    switch (state.phase) {
       case "placement":
         return (
           <PlacementCell
@@ -31,10 +37,11 @@ const GameBoard = ({ className }: GameBoardProps) => {
             isMoving={isMoving}
             setClickedCell={setClickedCell}
             clickedCell={clickedCell}
+            playSound={play}
           />
         );
       case "game":
-        return <GameCell x={x} y={y} />;
+        return <GameCell x={x} y={y} playSound={play} />;
     }
   };
 
@@ -45,14 +52,14 @@ const GameBoard = ({ className }: GameBoardProps) => {
   return (
     <div
       className={cn(
-        "mx-auto flex w-full max-w-[400px] flex-col items-center justify-center space-y-[1px] min-[200px]:space-y-0.5 min-[250px]:space-y-1",
+        "relative mx-auto flex w-full max-w-[400px] flex-col items-center justify-center space-y-[1px] min-[200px]:space-y-0.5 min-[250px]:space-y-1",
         className,
       )}
     >
       {board.map((row, i) => (
         <div
           key={i}
-          className="flex w-full gap-[1px] min-[200px]:gap-0.5 min-[250px]:gap-1 "
+          className=" flex w-full gap-[1px] min-[200px]:gap-0.5 min-[250px]:gap-1"
         >
           {row.map((cell, j) => (
             <React.Fragment key={`${i}-${j}`}>
@@ -61,6 +68,8 @@ const GameBoard = ({ className }: GameBoardProps) => {
           ))}
         </div>
       ))}
+
+      <Event type="hit" />
     </div>
   );
 };

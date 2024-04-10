@@ -25,8 +25,7 @@ const Placement = (props: Props) => {
           variant="ready"
           // variant={show ? "fire" : "ready"}
           onClick={() => {
-            Rune.actions.completePlacement();
-            navigate("/game");
+            Rune.actions.isReady();
           }}
         />
       </div>

@@ -111,3 +111,11 @@ export const rotateShip = (board: Board, selectedCell: Cell) => {
 
   moveShip(board, newShip, ship.startingPosition);
 };
+
+export const duckSoundSpriteMap: { [key: string]: [number, number] } = {
+  "duck-1": [200, 500],
+  "duck-2": [3800, 300],
+  "duck-3": [2000, 1000],
+  "duck-4": [3000, 1000],
+  "duck-5": [4000, 1000],
+};

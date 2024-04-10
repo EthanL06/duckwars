@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import { Board, Cell, GameState } from "../logic";
 import { PlayerId } from "rune-games-sdk";
+import { useNavigate } from "react-router-dom";
 
 interface GameContextType {
   state: GameState;
@@ -12,10 +13,12 @@ interface GameContextType {
 
 export const GameContext = createContext<GameContextType>({
   state: {
-    state: "placement",
+    phase: "placement",
     boards: {},
     ships: {},
     playerIds: [],
+    ready: {},
+    turn: "",
   },
   playerID: "",
   board: [],
@@ -27,25 +30,35 @@ export const GameContext = createContext<GameContextType>({
 
 export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const [game, setGame] = useState<GameState>({
-    state: "placement",
+    phase: "placement",
     boards: {},
     ships: {},
     playerIds: [],
+    ready: {},
+    turn: "",
   });
   const [playerID, setPlayerID] = useState<PlayerId>("");
   const [board, setBoard] = useState<Board>([]);
   const [selectedCell, setSelectedCell] = useState<Cell | null>(null);
+  const [gamePhase, setGamePhase] = useState<string>("placement");
+  const navigate = useNavigate();
 
   useEffect(() => {
     Rune.initClient({
       onChange: ({ game, yourPlayerId }) => {
-        console.log("Game updated", game);
+        console.log("Game updated: ", game);
+
         setPlayerID(yourPlayerId as PlayerId);
         setGame(game);
         setBoard(game.boards[yourPlayerId as PlayerId]);
+
+        if (game.phase !== gamePhase) {
+          setGamePhase(game.phase);
+          navigate("/game");
+        }
       },
     });
-  }, [playerID]);
+  }, [playerID, gamePhase, navigate]);
 
   return (
     <GameContext.Provider

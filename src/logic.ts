@@ -20,18 +20,20 @@ export interface Ship {
 }
 
 export interface GameState {
-  state: "placement" | "game" | "end";
+  phase: "placement" | "game" | "end";
   boards: Record<PlayerId, Board>;
   ships: Record<PlayerId, Ship[]>;
   playerIds: PlayerId[];
   turn: PlayerId;
+  ready: Record<PlayerId, boolean>;
 }
 
 type GameActions = {
-  completePlacement: () => void;
   bombCell: (cell: Cell) => void;
   updateBoard: (board: Board) => void;
   nextTurn: () => void;
+  isReady: () => void;
+  startGame: () => void;
 };
 
 declare global {
@@ -122,9 +124,9 @@ Rune.initLogic({
     );
 
     const board = placeShipsOnBoard(defaultBoard, defaultShipPositions);
-    console.log("Board", board);
+
     return {
-      state: "placement",
+      phase: "placement",
       boards: {
         [allPlayerIds[0]]: board,
         [allPlayerIds[1]]: board,
@@ -135,19 +137,35 @@ Rune.initLogic({
       },
       playerIds: allPlayerIds,
       turn: allPlayerIds[0],
+      ready: {
+        [allPlayerIds[0]]: false,
+        [allPlayerIds[1]]: false,
+      },
     };
   },
   actions: {
-    completePlacement: (_, { game, playerId }) => {
-      if (game.state !== "placement") {
+    isReady: (_, { game, playerId }) => {
+      if (game.phase !== "placement") {
         throw Rune.invalidAction();
       }
 
-      game.state = "game";
+      game.ready[playerId] = true;
+
+      if (game.ready[game.playerIds[0]] && game.ready[game.playerIds[1]]) {
+        game.phase = "game";
+      }
+    },
+
+    startGame: (_, { game }) => {
+      if (game.phase !== "placement") {
+        throw Rune.invalidAction();
+      }
+
+      game.phase = "game";
     },
 
     bombCell: (cell, { game, playerId }) => {
-      if (game.state !== "game") {
+      if (game.phase !== "game") {
         throw Rune.invalidAction();
       }
 
@@ -157,19 +175,14 @@ Rune.initLogic({
       const targetCell = targetBoard[cell.x][cell.y];
 
       if (targetCell.ship) {
-        game.boards[playerId][cell.x][cell.y].state = "hit";
-        // targetCell.state = "hit";
+        targetCell.state = "hit";
       } else {
-        game.boards[playerId][cell.x][cell.y].state = "miss";
-        // targetCell.state = "miss";
+        console.log(playerId, " missed!");
+        targetCell.state = "miss";
       }
     },
 
     updateBoard: (board, { game, playerId }) => {
-      // if (game.state !== "game") {
-      //   throw Rune.invalidAction();
-      // }
-
       game.boards[playerId] = board;
 
       console.log("Player", playerId, "updated board", board);
