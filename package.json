@@ -19,7 +19,8 @@
     "react-router-dom": "^6.22.3",
     "rune-games-sdk": "^4.16.38",
     "tailwind-merge": "^2.2.1",
-    "use-sound": "^4.0.1"
+    "use-sound": "^4.0.1",
+    "usehooks-ts": "^3.1.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",

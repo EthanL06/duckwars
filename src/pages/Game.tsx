@@ -13,8 +13,8 @@ const Game = (props: Props) => {
   const isTurn = state.turn === playerID;
 
   return (
-    <div className="flex min-h-screen flex-col justify-around gap-y-5 px-4 xxs:px-4 ">
-      <div>
+    <div className="flex h-full min-h-screen flex-col justify-between gap-y-5 ">
+      <div className="mt-8 px-4 xxs:px-4">
         <div className="flex items-center justify-center">
           {state.playerIds.map((playerId, index) => {
             const playerInfo = Rune.getPlayerInfo(playerId);
@@ -44,8 +44,12 @@ const Game = (props: Props) => {
         <GameBoard className="mt-5" />
       </div>
 
-      <div className="mx-auto w-full max-w-[400px]">
-        <img src={TubParts} alt="Tub Parts" className="mx-auto mt-5" />
+      <div className="mx-auto w-full">
+        <img
+          src={TubParts}
+          alt="Tub Parts"
+          className="relative mx-auto w-full"
+        />
       </div>
     </div>
   );

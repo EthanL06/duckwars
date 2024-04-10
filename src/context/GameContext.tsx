@@ -19,6 +19,7 @@ export const GameContext = createContext<GameContextType>({
     playerIds: [],
     ready: {},
     turn: "",
+    lastAction: null,
   },
   playerID: "",
   board: [],
@@ -36,7 +37,9 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     playerIds: [],
     ready: {},
     turn: "",
+    lastAction: null,
   });
+
   const [playerID, setPlayerID] = useState<PlayerId>("");
   const [board, setBoard] = useState<Board>([]);
   const [selectedCell, setSelectedCell] = useState<Cell | null>(null);
@@ -56,13 +59,26 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
           setGamePhase(game.phase);
           navigate("/game");
         }
+
+        if (game.lastAction != null) {
+          // Wait 5 seconds before clearing the last action
+          setTimeout(() => {
+            Rune.actions.clearLastAction();
+          }, 5000);
+        }
       },
     });
   }, [playerID, gamePhase, navigate]);
 
   return (
     <GameContext.Provider
-      value={{ state: game, playerID, board, selectedCell, setSelectedCell }}
+      value={{
+        state: game,
+        playerID,
+        board,
+        selectedCell,
+        setSelectedCell,
+      }}
     >
       {children}
     </GameContext.Provider>

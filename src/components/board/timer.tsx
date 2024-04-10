@@ -8,12 +8,12 @@ type Props = {
 
 // bg-gradient-to-r from-[#60F0FF] to-[#20D6E9]
 
-const Timer = (props: Props) => {
+const Timer = ({ count }: { count: number }) => {
   const [position, setPosition] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => {
       setPosition((pos) => pos + 1);
-    }, 500);
+    }, 250);
     return () => clearInterval(interval);
   }, []);
 
@@ -24,10 +24,18 @@ const Timer = (props: Props) => {
           "absolute top-0 flex transition-all duration-500 ease-linear ",
         )}
         style={{
-          right: `calc(0rem + ${position}rem)`,
+          right: `${position}rem`,
         }}
       />
-      <div className="relative z-[9999]  font-mono">{position}</div>
+      <div
+        className="relative z-[9999]  font-mono"
+        style={{
+          WebkitTextStrokeWidth: "1px",
+          WebkitTextStrokeColor: "black",
+        }}
+      >
+        {count}
+      </div>
     </div>
   );
 };

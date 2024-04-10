@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 
 import Default from "../../ducks/default";
 import Scarf from "../../ducks/scarf";
@@ -13,6 +13,7 @@ import { useLongPress } from "@uidotdev/usehooks";
 import { PlayerId } from "rune-games-sdk";
 import { PlayFunction } from "use-sound";
 import { Cell } from "../../../logic";
+import { AnimatePresence, motion } from "framer-motion";
 
 type GameCellProps = {
   x: number;
@@ -27,8 +28,11 @@ const GameCell = ({ x, y, playSound }: GameCellProps) => {
   const bombCell = (cell: Cell) => {
     if (isCellSelected()) {
       Rune.actions.bombCell(cell);
-      // Rune.actions.nextTurn();
+
       setSelectedCell(null);
+      setTimeout(() => {
+        Rune.actions.nextTurn();
+      }, 5200);
     } else {
       setSelectedCell(cell);
     }
@@ -85,7 +89,11 @@ const GameCell = ({ x, y, playSound }: GameCellProps) => {
         switch (board[x][y].state) {
           case "hit":
             return (
-              <img className="size-full scale-[0.8]" src={Hit} alt="hit" />
+              <img
+                className={cn("scale-up-down size-full scale-[0.8]")}
+                src={Hit}
+                alt="hit"
+              />
             );
           case "miss":
             return (
@@ -101,8 +109,11 @@ const GameCell = ({ x, y, playSound }: GameCellProps) => {
       }
     }
 
+    // When player's turn
     if (isCellSelected()) {
-      return <img className="size-full" src={Target} alt="target" />;
+      return (
+        <img className="scale-up-down size-full" src={Target} alt="target" />
+      );
     }
 
     const opponentsBoard =
@@ -110,7 +121,13 @@ const GameCell = ({ x, y, playSound }: GameCellProps) => {
 
     switch (opponentsBoard[x][y].state) {
       case "hit":
-        return <img className="size-full scale-[0.8]" src={Hit} alt="hit" />;
+        return (
+          <img
+            className="scale-up-down size-full scale-[0.8]"
+            src={Hit}
+            alt="hit"
+          />
+        );
       case "miss":
         return (
           <img className="size-full scale-[0.8]" src={MissSplash} alt="miss" />

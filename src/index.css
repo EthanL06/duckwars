@@ -81,4 +81,18 @@
       opacity: 0;
     }
   }
+
+  .scale-up-down {
+    animation: scale-up-down 2s ease-in-out infinite;
+  }
+
+  @keyframes scale-up-down {
+    0%,
+    100% {
+      transform: scale(0.8);
+    }
+    50% {
+      transform: scale(0.95);
+    }
+  }
 }

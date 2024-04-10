@@ -1,25 +1,46 @@
 import PlacementCell from "./cells/placement-cell";
 import { cn, duckSoundSpriteMap } from "../../lib/utils";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { GameContext } from "../../context/GameContext";
 import GameCell from "./cells/game-cell";
 import { Cell } from "../../logic";
 import useSound from "use-sound";
 import rubberDuckSound from "../../assets/sfx/rubber_duck.wav";
-import Event from "../events/hit";
+import Event from "../events/event";
+import { AnimatePresence, motion } from "framer-motion";
+import Timer from "./timer";
+import { useCountdown, useClickAnyWhere } from "usehooks-ts";
 
 type GameBoardProps = {
   className?: string;
 };
 
 const GameBoard = ({ className }: GameBoardProps) => {
-  const { board, state } = useContext(GameContext);
+  const { board, state, playerID } = useContext(GameContext);
   const [clickedCell, setClickedCell] = useState<Cell | null>(null);
   const [selectedCells, setSelectedCells] = useState<Cell[]>([]);
   const [isMoving, setIsMoving] = useState(false);
   const [play] = useSound(rubberDuckSound, {
     sprite: duckSoundSpriteMap,
   });
+  const [count, { startCountdown, stopCountdown, resetCountdown }] =
+    useCountdown({
+      countStart: 10,
+      intervalMs: 1000,
+    });
+
+  useClickAnyWhere(() => {
+    resetCountdown();
+    startCountdown();
+  });
+
+  useEffect(() => {
+    if (state.phase === "game" && state.turn === playerID) {
+      startCountdown();
+    } else {
+      stopCountdown();
+    }
+  }, [playerID, startCountdown, state.phase, state.turn, stopCountdown]);
 
   const renderCell = (x: number, y: number) => {
     switch (state.phase) {
@@ -56,6 +77,8 @@ const GameBoard = ({ className }: GameBoardProps) => {
         className,
       )}
     >
+      {count <= 5 && <Timer count={count} />}
+
       {board.map((row, i) => (
         <div
           key={i}
@@ -69,7 +92,7 @@ const GameBoard = ({ className }: GameBoardProps) => {
         </div>
       ))}
 
-      <Event type="hit" />
+      <Event />
     </div>
   );
 };

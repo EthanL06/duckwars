@@ -25,6 +25,7 @@ export interface GameState {
   ships: Record<PlayerId, Ship[]>;
   playerIds: PlayerId[];
   turn: PlayerId;
+  lastAction: "hit" | "miss" | "sunk" | null;
   ready: Record<PlayerId, boolean>;
 }
 
@@ -34,6 +35,7 @@ type GameActions = {
   nextTurn: () => void;
   isReady: () => void;
   startGame: () => void;
+  clearLastAction: () => void;
 };
 
 declare global {
@@ -141,6 +143,7 @@ Rune.initLogic({
         [allPlayerIds[0]]: false,
         [allPlayerIds[1]]: false,
       },
+      lastAction: null,
     };
   },
   actions: {
@@ -176,9 +179,11 @@ Rune.initLogic({
 
       if (targetCell.ship) {
         targetCell.state = "hit";
+        game.lastAction = "hit";
       } else {
         console.log(playerId, " missed!");
         targetCell.state = "miss";
+        game.lastAction = "miss";
       }
     },
 
@@ -192,6 +197,10 @@ Rune.initLogic({
       const currentPlayerIndex = game.playerIds.indexOf(game.turn);
       const nextPlayerIndex = (currentPlayerIndex + 1) % game.playerIds.length;
       game.turn = game.playerIds[nextPlayerIndex];
+    },
+
+    clearLastAction: (_, { game }) => {
+      game.lastAction = null;
     },
   },
 });
