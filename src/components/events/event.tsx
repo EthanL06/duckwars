@@ -2,22 +2,46 @@ import React, { useContext } from "react";
 import { createPortal } from "react-dom";
 import hitImage from "../../assets/cell/hit.svg";
 import missImage from "../../assets/cell/miss-splash.svg";
+import inactiveImage from "../../assets/misc/inactive.svg";
 import { GameContext } from "../../context/GameContext";
 import { AnimatePresence, motion } from "framer-motion";
-type Props = {
-  // type: "hit" | "miss" | "sunk";
-};
 
-const Event = ({}: Props) => {
+const Event = () => {
   const { state } = useContext(GameContext);
 
   return (
-    <>{createPortal(<EventContent type={state.lastAction} />, document.body)}</>
+    <>{createPortal(<EventContent type={state.lastEvent} />, document.body)}</>
   );
 };
 
-const EventContent = ({ type }: { type: "hit" | "miss" | "sunk" | null }) => {
+const EventContent = ({
+  type,
+}: {
+  type: "hit" | "miss" | "sunk" | "inactive" | "game over" | null;
+}) => {
   const { playerID, state } = useContext(GameContext);
+
+  const images = {
+    hit: hitImage,
+    miss: missImage,
+    inactive: inactiveImage,
+    sunk: hitImage,
+    "game over": hitImage,
+  };
+
+  const message = {
+    hit: "HIT!",
+    miss: "MISS!",
+    inactive: "SKIP!",
+    sunk: "SUNK!",
+    "game over": "OVER!",
+  };
+
+  const subtitle = {
+    default:
+      state.turn === playerID ? "Your turn is over..." : "Your turn is next...",
+    "game over": state.winner === playerID ? "You win!" : "You lose!",
+  };
 
   return (
     <AnimatePresence>
@@ -50,7 +74,7 @@ const EventContent = ({ type }: { type: "hit" | "miss" | "sunk" | null }) => {
                 },
               },
             }}
-            src={type === "hit" ? hitImage : missImage}
+            src={images[type]}
             alt={type}
             className="h-20 w-20"
           />
@@ -75,7 +99,7 @@ const EventContent = ({ type }: { type: "hit" | "miss" | "sunk" | null }) => {
               }}
               className="relative"
             >
-              {type === "hit" ? "HIT!" : "MISS!"}
+              {message[type]}
             </motion.div>
 
             <motion.div
@@ -90,10 +114,9 @@ const EventContent = ({ type }: { type: "hit" | "miss" | "sunk" | null }) => {
               exit={{ opacity: 0, left: -50 }}
               className="relative mt-1 text-2xl font-medium text-slate-400"
             >
-              {state.turn === playerID
-                ? "Your turn is over"
-                : "Your turn is next"}
-              ...
+              {type === "game over"
+                ? subtitle["game over"]
+                : subtitle["default"]}
             </motion.div>
           </div>
         </motion.div>

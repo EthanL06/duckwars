@@ -20,59 +20,30 @@ export interface Ship {
 }
 
 export interface GameState {
-  phase: "placement" | "game" | "end";
+  phase: "placement" | "game";
   boards: Record<PlayerId, Board>;
   ships: Record<PlayerId, Ship[]>;
   playerIds: PlayerId[];
   turn: PlayerId;
-  lastAction: "hit" | "miss" | "sunk" | null;
+  lastEvent: "hit" | "miss" | "sunk" | "inactive" | "game over" | null;
   ready: Record<PlayerId, boolean>;
+  winner?: PlayerId;
 }
 
 type GameActions = {
   bombCell: (cell: Cell) => void;
   updateBoard: (board: Board) => void;
   nextTurn: () => void;
-  isReady: () => void;
+  setReady: (ready: boolean) => void;
   startGame: () => void;
-  clearLastAction: () => void;
+  gameEnd: () => void;
+  setLastEvent: (event: "hit" | "miss" | "sunk" | "inactive") => void;
+  clearLastEvent: () => void;
 };
 
 declare global {
   const Rune: RuneClient<GameState, GameActions>;
 }
-
-// const updateShipsOnBoard = (board: Board, ships: Ship[]): Board => {
-//   let newBoard = [...board];
-
-//   ships.forEach((ship) => {
-//     newBoard = newBoard.map((row) =>
-//       row.map((cell) => {
-//         if (ship.orientation === "horizontal") {
-//           if (
-//             cell.x >= ship.startingPosition.x &&
-//             cell.x < ship.startingPosition.x + ship.count &&
-//             cell.y === ship.startingPosition.y
-//           ) {
-//             return { ...cell, ship };
-//           }
-//         } else if (ship.orientation === "vertical") {
-//           if (
-//             cell.y >= ship.startingPosition.y &&
-//             cell.y < ship.startingPosition.y + ship.count &&
-//             cell.x === ship.startingPosition.x
-//           ) {
-//             return { ...cell, ship };
-//           }
-//         }
-
-//         return cell;
-//       }),
-//     );
-//   });
-
-//   return newBoard;
-// };
 
 const placeShipsOnBoard = (board: Board, ships: Ship[]): Board => {
   const newBoard = JSON.parse(JSON.stringify(board)); // Deep copy
@@ -88,6 +59,34 @@ const placeShipsOnBoard = (board: Board, ships: Ship[]): Board => {
   });
 
   return newBoard;
+};
+
+const isShipSunk = (board: Board, ship: Ship) => {
+  const allCells = [] as Cell[];
+
+  board.forEach((row) => {
+    row.forEach((cell) => {
+      if (cell.ship?.type === ship.type) {
+        allCells.push(cell);
+      }
+    });
+  });
+
+  return allCells.every((cell) => cell.state == "hit");
+};
+
+const haveAllShipsSunk = (board: Board) => {
+  const allShips = [] as Ship[];
+
+  board.forEach((row) => {
+    row.forEach((cell) => {
+      if (cell.ship && !allShips.includes(cell.ship)) {
+        allShips.push(cell.ship);
+      }
+    });
+  });
+
+  return allShips.every((ship) => isShipSunk(board, ship));
 };
 
 Rune.initLogic({
@@ -143,16 +142,16 @@ Rune.initLogic({
         [allPlayerIds[0]]: false,
         [allPlayerIds[1]]: false,
       },
-      lastAction: null,
+      lastEvent: null,
     };
   },
   actions: {
-    isReady: (_, { game, playerId }) => {
+    setReady: (ready, { game, playerId }) => {
       if (game.phase !== "placement") {
         throw Rune.invalidAction();
       }
 
-      game.ready[playerId] = true;
+      game.ready[playerId] = ready;
 
       if (game.ready[game.playerIds[0]] && game.ready[game.playerIds[1]]) {
         game.phase = "game";
@@ -177,13 +176,37 @@ Rune.initLogic({
 
       const targetCell = targetBoard[cell.x][cell.y];
 
+      if (targetCell.state != undefined) {
+        throw Rune.invalidAction();
+      }
+
       if (targetCell.ship) {
         targetCell.state = "hit";
-        game.lastAction = "hit";
+
+        if (haveAllShipsSunk(targetBoard)) {
+          game.lastEvent = "game over";
+          game.winner = playerId;
+          Rune.gameOver({
+            players: {
+              [game.playerIds[0]]:
+                game.playerIds[0] === playerId ? "WON" : "LOST",
+              [game.playerIds[1]]:
+                game.playerIds[1] === playerId ? "WON" : "LOST",
+            },
+            delayPopUp: true,
+          });
+
+          return;
+        }
+
+        if (isShipSunk(targetBoard, targetCell.ship)) {
+          game.lastEvent = "sunk";
+        } else {
+          game.lastEvent = "hit";
+        }
       } else {
-        console.log(playerId, " missed!");
         targetCell.state = "miss";
-        game.lastAction = "miss";
+        game.lastEvent = "miss";
       }
     },
 
@@ -194,13 +217,36 @@ Rune.initLogic({
     },
 
     nextTurn: (_, { game }) => {
+      if (game.phase !== "game") {
+        throw Rune.invalidAction();
+      }
+
       const currentPlayerIndex = game.playerIds.indexOf(game.turn);
       const nextPlayerIndex = (currentPlayerIndex + 1) % game.playerIds.length;
       game.turn = game.playerIds[nextPlayerIndex];
     },
 
-    clearLastAction: (_, { game }) => {
-      game.lastAction = null;
+    gameEnd: (_, { game }) => {
+      if (!game.winner) {
+        throw Rune.invalidAction();
+      }
+
+      Rune.gameOver({
+        players: {
+          [game.playerIds[0]]:
+            game.playerIds[0] === game.winner ? "WON" : "LOST",
+          [game.playerIds[1]]:
+            game.playerIds[1] === game.winner ? "WON" : "LOST",
+        },
+      });
+    },
+
+    setLastEvent: (event, { game }) => {
+      game.lastEvent = event;
+    },
+
+    clearLastEvent: (_, { game }) => {
+      game.lastEvent = null;
     },
   },
 });

@@ -1,16 +1,22 @@
-import React from "react";
+import React, { useContext } from "react";
 import Button from "../components/buttons/button";
 import GameBoard from "../components/board/game-board";
-import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import PlayerProfiles from "../components/board/player-profiles";
+import { GameContext } from "../context/GameContext";
 
-type Props = {};
-
-const Placement = (props: Props) => {
-  const navigate = useNavigate();
+const Placement = () => {
+  const { state, playerID } = useContext(GameContext);
 
   return (
-    <div className="flex min-h-screen flex-col justify-around gap-y-5 px-4 xxs:px-4 ">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.5 }}
+      className="flex min-h-screen flex-col justify-around gap-y-5 bg-white px-4 xxs:px-4"
+    >
       <div>
+        <PlayerProfiles />
         <h1 className="text-balance text-center font-bold leading-none [font-size:_clamp(0.8rem,8vw,2rem)]">
           Place Your Ducks
         </h1>
@@ -22,14 +28,13 @@ const Placement = (props: Props) => {
 
       <div className="mx-auto w-full max-w-[400px]">
         <Button
-          variant="ready"
-          // variant={show ? "fire" : "ready"}
+          variant={state.ready[playerID] ? "unready" : "ready"}
           onClick={() => {
-            Rune.actions.isReady();
+            Rune.actions.setReady(!state.ready[playerID]);
           }}
         />
       </div>
-    </div>
+    </motion.div>
   );
 };
 

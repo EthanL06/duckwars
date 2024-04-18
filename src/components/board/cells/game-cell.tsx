@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
 
 import Default from "../../ducks/default";
 import Scarf from "../../ducks/scarf";
@@ -13,38 +13,47 @@ import { useLongPress } from "@uidotdev/usehooks";
 import { PlayerId } from "rune-games-sdk";
 import { PlayFunction } from "use-sound";
 import { Cell } from "../../../logic";
-import { AnimatePresence, motion } from "framer-motion";
 
 type GameCellProps = {
   x: number;
   y: number;
   playSound: PlayFunction;
+  onBombCell: (cell: Cell) => void;
 };
 
-const GameCell = ({ x, y, playSound }: GameCellProps) => {
+const GameCell = ({ x, y, playSound, onBombCell }: GameCellProps) => {
   const { board, selectedCell, setSelectedCell, state, playerID } =
     useContext(GameContext);
 
   const bombCell = (cell: Cell) => {
     if (isCellSelected()) {
       Rune.actions.bombCell(cell);
+      onBombCell(cell);
 
       setSelectedCell(null);
       setTimeout(() => {
         Rune.actions.nextTurn();
-      }, 5200);
+      }, 5150);
     } else {
-      setSelectedCell(cell);
+      const opponentsBoard =
+        state.boards[state.playerIds.find((id) => id !== playerID) as PlayerId];
+
+      if (opponentsBoard[x][y].state == undefined) setSelectedCell(cell);
     }
   };
 
-  const attrs = useLongPress(() => {}, {
-    onFinish: (event) => {
-      event.preventDefault();
-      bombCell(board[x][y]);
+  const attrs = useLongPress(
+    () => {
+      return;
     },
-    threshold: 500,
-  });
+    {
+      onFinish: (event) => {
+        event.preventDefault();
+        bombCell(board[x][y]);
+      },
+      threshold: 500,
+    },
+  );
 
   const selectDuckComponent = () => {
     const ship = board[x][y].ship;
@@ -140,6 +149,7 @@ const GameCell = ({ x, y, playSound }: GameCellProps) => {
   const onCellClick = () => {
     const opponentsBoard =
       state.boards[state.playerIds.find((id) => id !== playerID) as PlayerId];
+
     if (state.turn !== playerID || opponentsBoard[x][y].state != undefined)
       return;
 

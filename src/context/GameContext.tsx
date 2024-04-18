@@ -1,7 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import { Board, Cell, GameState } from "../logic";
 import { PlayerId } from "rune-games-sdk";
-import { useNavigate } from "react-router-dom";
 
 interface GameContextType {
   state: GameState;
@@ -19,7 +18,7 @@ export const GameContext = createContext<GameContextType>({
     playerIds: [],
     ready: {},
     turn: "",
-    lastAction: null,
+    lastEvent: null,
   },
   playerID: "",
   board: [],
@@ -37,14 +36,13 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     playerIds: [],
     ready: {},
     turn: "",
-    lastAction: null,
+    lastEvent: null,
+    winner: "",
   });
-
   const [playerID, setPlayerID] = useState<PlayerId>("");
   const [board, setBoard] = useState<Board>([]);
   const [selectedCell, setSelectedCell] = useState<Cell | null>(null);
   const [gamePhase, setGamePhase] = useState<string>("placement");
-  const navigate = useNavigate();
 
   useEffect(() => {
     Rune.initClient({
@@ -57,18 +55,21 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (game.phase !== gamePhase) {
           setGamePhase(game.phase);
-          navigate("/game");
         }
 
-        if (game.lastAction != null) {
-          // Wait 5 seconds before clearing the last action
+        if (game.lastEvent != null) {
+          if (game.winner && game.phase === "game") {
+            Rune.showGameOverPopUp();
+            return;
+          }
+
           setTimeout(() => {
-            Rune.actions.clearLastAction();
+            Rune.actions.clearLastEvent();
           }, 5000);
         }
       },
     });
-  }, [playerID, gamePhase, navigate]);
+  }, []);
 
   return (
     <GameContext.Provider
