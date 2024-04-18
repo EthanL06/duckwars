@@ -12,10 +12,13 @@ interface GameContextType {
 
 export const GameContext = createContext<GameContextType>({
   state: {
-    state: "placement",
+    phase: "placement",
     boards: {},
     ships: {},
     playerIds: [],
+    ready: {},
+    turn: "",
+    lastEvent: null,
   },
   playerID: "",
   board: [],
@@ -27,29 +30,56 @@ export const GameContext = createContext<GameContextType>({
 
 export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const [game, setGame] = useState<GameState>({
-    state: "placement",
+    phase: "placement",
     boards: {},
     ships: {},
     playerIds: [],
+    ready: {},
+    turn: "",
+    lastEvent: null,
+    winner: "",
   });
   const [playerID, setPlayerID] = useState<PlayerId>("");
   const [board, setBoard] = useState<Board>([]);
   const [selectedCell, setSelectedCell] = useState<Cell | null>(null);
+  const [gamePhase, setGamePhase] = useState<string>("placement");
 
   useEffect(() => {
     Rune.initClient({
       onChange: ({ game, yourPlayerId }) => {
-        console.log("Game updated", game);
+        console.log("Game updated: ", game);
+
         setPlayerID(yourPlayerId as PlayerId);
         setGame(game);
         setBoard(game.boards[yourPlayerId as PlayerId]);
+
+        if (game.phase !== gamePhase) {
+          setGamePhase(game.phase);
+        }
+
+        if (game.lastEvent != null) {
+          if (game.winner && game.phase === "game") {
+            Rune.showGameOverPopUp();
+            return;
+          }
+
+          setTimeout(() => {
+            Rune.actions.clearLastEvent();
+          }, 5000);
+        }
       },
     });
-  }, [playerID]);
+  }, []);
 
   return (
     <GameContext.Provider
-      value={{ state: game, playerID, board, selectedCell, setSelectedCell }}
+      value={{
+        state: game,
+        playerID,
+        board,
+        selectedCell,
+        setSelectedCell,
+      }}
     >
       {children}
     </GameContext.Provider>

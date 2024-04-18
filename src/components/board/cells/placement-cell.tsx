@@ -7,6 +7,9 @@ import Pirate from "../../ducks/pirate";
 import { cn, isValidPosition, moveShip, rotateShip } from "../../../lib/utils";
 import { GameContext } from "../../../context/GameContext";
 import { Cell, Ship } from "../../../logic";
+import { PlayFunction } from "use-sound";
+import { AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 type PlacementCellProps = {
   x: number;
@@ -18,6 +21,7 @@ type PlacementCellProps = {
   setIsMoving: React.Dispatch<React.SetStateAction<boolean>>;
   setClickedCell: React.Dispatch<React.SetStateAction<Cell | null>>;
   clickedCell: Cell | null;
+  playSound: PlayFunction;
 };
 
 const PlacementCell: React.FC<PlacementCellProps> = ({
@@ -30,20 +34,10 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
   setIsMoving,
   setClickedCell,
   clickedCell,
+  playSound,
 }) => {
   const { state, playerID } = useContext(GameContext);
   const board = state.boards[playerID];
-  const ships = state.ships[playerID];
-
-  // const {
-  //   selected,
-  //   setSelected,
-  //   selectedCells,
-  //   isMoving,
-  //   moveShip,
-  //   rotateShip,
-  //   isValidPosition,
-  // } = useContext(MoveShipContext);
 
   const selectDuckComponent = () => {
     const ship = board[x][y].ship;
@@ -103,16 +97,24 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
       );
     };
 
+    // To rotate ship
     if (isMoving && clickedCell?.x === x && clickedCell?.y === y) {
       rotateShip(board, clickedCell);
+      playSound({
+        id: "duck-2",
+      });
       setIsMoving(false);
       setSelectedCells([]);
       setClickedCell(null);
       return;
     }
 
+    // To move ship
     if (canMoveShipToCell()) {
       moveShip(board, selectedShip as Ship, board[x][y]);
+      playSound({
+        id: "duck-1",
+      });
       setIsMoving(false);
       setSelectedCells([]);
       setClickedCell(null);
@@ -125,25 +127,6 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
     highlightShip();
     setIsMoving(true);
   };
-
-  // const onCellClick = () => {
-  //   const cellHasDuck = hasDuck();
-  //   const cellIsSelected = selectedCells.some(
-  //     (cell) => cell.x === x && cell.y === y,
-  //   );
-
-  //   const deselectAndRotate = (pos: Position) => {
-  //     rotateShip(board.cells[pos.x][pos.y]);
-  //     setSelected(null);
-  //   };
-
-  //   const moveSelectedShip = (oldPos: Position) => {
-  //     console.log("moving ship");
-  //     moveShip({
-  //       oldPosition: oldPos,
-  //       newPosition: { x, y },
-  //     });
-  //   };
 
   const isValidCellToMoveTo = () => {
     if (!isMoving || !selectedShip) return false;
@@ -164,20 +147,41 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
     <button
       tabIndex={-1}
       onClick={onCellClick}
-      // disabled={isDisabled()}
       className={cn(
-        "aspect-square w-[10%] rounded bg-cell hover:cursor-pointer disabled:cursor-default",
+        "aspect-square w-[10%] scale-100 rounded bg-cell transition-all hover:cursor-pointer disabled:cursor-default",
         isSelected && "animate-pulse bg-gray-300",
-
-        // selected?.x === x &&
-        //   selected?.y === y &&
-        //   "outline-solid outline outline-4 -outline-offset-[1px]  outline-black",
         isMoving && isMovingClasses(),
       )}
     >
-      {hasDuck() && (
-        <div className="size-full select-none">{selectDuckComponent()}</div>
-      )}
+      <AnimatePresence mode="wait">
+        {hasDuck() && (
+          <motion.div
+            initial={{ scale: 0.5 }}
+            animate={isSelected ? "scaleUp" : "animateIn"}
+            exit={{ scale: 0 }}
+            variants={{
+              scaleUp: {
+                scale: 1.25,
+                transition: {
+                  bounce: 0.75,
+                  type: "spring",
+                },
+              },
+              animateIn: {
+                scale: 1,
+                transition: {
+                  bounce: 0.75,
+                  type: "spring",
+                },
+              },
+            }}
+            key={"duck"}
+            className="size-full select-none"
+          >
+            {selectDuckComponent()}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </button>
   );
 };

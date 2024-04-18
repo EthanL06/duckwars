@@ -1,15 +1,17 @@
-import React from "react";
-import { Route, Routes } from "react-router-dom";
+import React, { useContext } from "react";
 import Placement from "./pages/Placement";
 import Game from "./pages/Game";
+import { GameContext } from "./context/GameContext";
 
 const App = () => {
-  return (
-    <Routes>
-      <Route path="/" element={<Placement />} />
-      <Route path="/game" element={<Game />} />
-    </Routes>
-  );
+  const { state } = useContext(GameContext);
+
+  const pages = {
+    placement: <Placement />,
+    game: <Game />,
+  };
+
+  return <>{pages[state.phase]}</>;
 };
 
 export default App;

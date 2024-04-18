@@ -1,34 +1,95 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { cn } from "../../lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { GameContext } from "../../context/GameContext";
 
 type Props = {
   className?: string;
   style?: React.CSSProperties;
 };
 
-// bg-gradient-to-r from-[#60F0FF] to-[#20D6E9]
+const Timer = ({
+  count,
+  enabled,
+}: {
+  count: number;
+  enabled: boolean;
+  className?: string;
+}) => {
+  const { state } = useContext(GameContext);
+  const [position, setPosition] = useState(-2);
 
-const Timer = (props: Props) => {
-  const [position, setPosition] = useState(0);
   useEffect(() => {
+    if (state.winner) {
+      return;
+    }
+
+    if (count === 8) {
+      setPosition(-2);
+    }
+
     const interval = setInterval(() => {
-      setPosition((pos) => pos + 1);
-    }, 500);
+      if (count <= 5 && count >= 0) {
+        setPosition((pos) => pos + 1);
+      }
+    }, 195);
     return () => clearInterval(interval);
-  }, []);
+  }, [count, state.winner]);
+
+  if (state.winner) {
+    return null;
+  }
 
   return (
-    <div className="relative mx-auto flex h-4 w-full max-w-[400px] items-center justify-center overflow-clip rounded-full bg-[#E6FDFF] font-black text-white">
+    <motion.div
+      className={cn(
+        "relative mx-auto flex h-4 w-full max-w-[400px] items-center justify-center overflow-clip rounded-full bg-[#E6FDFF] font-black text-white",
+      )}
+      variants={{
+        hidden: {
+          opacity: 0,
+          scale: 0.5,
+        },
+        visible: {
+          opacity: 1,
+          scale: 1,
+        },
+      }}
+      initial="hidden"
+      animate={enabled && count <= 5 ? "visible" : "hidden"}
+      transition={{
+        bounce: 0.5,
+        type: "spring",
+      }}
+    >
       <TimerImage
         className={cn(
-          "absolute top-0 flex transition-all duration-500 ease-linear ",
+          "absolute top-0 flex transition-all duration-[1000ms] ease-linear ",
+          !enabled && "hidden",
         )}
         style={{
-          right: `calc(0rem + ${position}rem)`,
+          right: `${(position + 1) * 5}%`,
         }}
       />
-      <div className="relative z-[9999]  font-mono">{position}</div>
-    </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={count}
+          initial={{ scale: 0.5 }}
+          animate={{ scale: 1 }}
+          transition={{
+            bounce: 0.75,
+            type: "spring",
+          }}
+          className="relative z-[9999]  font-mono text-sm"
+          style={{
+            WebkitTextStrokeWidth: "1px",
+            WebkitTextStrokeColor: "#0891b2",
+          }}
+        >
+          {count <= 5 && <span>{count}</span>}
+        </motion.div>
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
@@ -146,8 +207,8 @@ const TimerImage = ({ className, style }: Props) => {
             y2="9"
             gradientUnits="userSpaceOnUse"
           >
-            <stop stop-color="#60F0FF" />
-            <stop offset="1" stop-color="#20D6E9" />
+            <stop stopColor="#60F0FF" />
+            <stop offset="1" stopColor="#20D6E9" />
           </linearGradient>
           <linearGradient
             id="paint1_linear_0_1"
@@ -157,7 +218,7 @@ const TimerImage = ({ className, style }: Props) => {
             y2="6"
             gradientUnits="userSpaceOnUse"
           >
-            <stop stop-color="#8EF4FF" />
+            <stop stopColor="#8EF4FF" />
             <stop offset="1" stop-color="#ADF7FF" />
           </linearGradient>
         </defs>

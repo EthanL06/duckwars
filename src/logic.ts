@@ -20,55 +20,30 @@ export interface Ship {
 }
 
 export interface GameState {
-  state: "placement" | "game" | "end";
+  phase: "placement" | "game";
   boards: Record<PlayerId, Board>;
   ships: Record<PlayerId, Ship[]>;
   playerIds: PlayerId[];
   turn: PlayerId;
+  lastEvent: "hit" | "miss" | "sunk" | "inactive" | "game over" | null;
+  ready: Record<PlayerId, boolean>;
+  winner?: PlayerId;
 }
 
 type GameActions = {
-  completePlacement: () => void;
   bombCell: (cell: Cell) => void;
   updateBoard: (board: Board) => void;
   nextTurn: () => void;
+  setReady: (ready: boolean) => void;
+  startGame: () => void;
+  gameEnd: () => void;
+  setLastEvent: (event: "hit" | "miss" | "sunk" | "inactive") => void;
+  clearLastEvent: () => void;
 };
 
 declare global {
   const Rune: RuneClient<GameState, GameActions>;
 }
-
-// const updateShipsOnBoard = (board: Board, ships: Ship[]): Board => {
-//   let newBoard = [...board];
-
-//   ships.forEach((ship) => {
-//     newBoard = newBoard.map((row) =>
-//       row.map((cell) => {
-//         if (ship.orientation === "horizontal") {
-//           if (
-//             cell.x >= ship.startingPosition.x &&
-//             cell.x < ship.startingPosition.x + ship.count &&
-//             cell.y === ship.startingPosition.y
-//           ) {
-//             return { ...cell, ship };
-//           }
-//         } else if (ship.orientation === "vertical") {
-//           if (
-//             cell.y >= ship.startingPosition.y &&
-//             cell.y < ship.startingPosition.y + ship.count &&
-//             cell.x === ship.startingPosition.x
-//           ) {
-//             return { ...cell, ship };
-//           }
-//         }
-
-//         return cell;
-//       }),
-//     );
-//   });
-
-//   return newBoard;
-// };
 
 const placeShipsOnBoard = (board: Board, ships: Ship[]): Board => {
   const newBoard = JSON.parse(JSON.stringify(board)); // Deep copy
@@ -84,6 +59,34 @@ const placeShipsOnBoard = (board: Board, ships: Ship[]): Board => {
   });
 
   return newBoard;
+};
+
+const isShipSunk = (board: Board, ship: Ship) => {
+  const allCells = [] as Cell[];
+
+  board.forEach((row) => {
+    row.forEach((cell) => {
+      if (cell.ship?.type === ship.type) {
+        allCells.push(cell);
+      }
+    });
+  });
+
+  return allCells.every((cell) => cell.state == "hit");
+};
+
+const haveAllShipsSunk = (board: Board) => {
+  const allShips = [] as Ship[];
+
+  board.forEach((row) => {
+    row.forEach((cell) => {
+      if (cell.ship && !allShips.includes(cell.ship)) {
+        allShips.push(cell.ship);
+      }
+    });
+  });
+
+  return allShips.every((ship) => isShipSunk(board, ship));
 };
 
 Rune.initLogic({
@@ -122,9 +125,9 @@ Rune.initLogic({
     );
 
     const board = placeShipsOnBoard(defaultBoard, defaultShipPositions);
-    console.log("Board", board);
+
     return {
-      state: "placement",
+      phase: "placement",
       boards: {
         [allPlayerIds[0]]: board,
         [allPlayerIds[1]]: board,
@@ -135,19 +138,36 @@ Rune.initLogic({
       },
       playerIds: allPlayerIds,
       turn: allPlayerIds[0],
+      ready: {
+        [allPlayerIds[0]]: false,
+        [allPlayerIds[1]]: false,
+      },
+      lastEvent: null,
     };
   },
   actions: {
-    completePlacement: (_, { game, playerId }) => {
-      if (game.state !== "placement") {
+    setReady: (ready, { game, playerId }) => {
+      if (game.phase !== "placement") {
         throw Rune.invalidAction();
       }
 
-      game.state = "game";
+      game.ready[playerId] = ready;
+
+      if (game.ready[game.playerIds[0]] && game.ready[game.playerIds[1]]) {
+        game.phase = "game";
+      }
+    },
+
+    startGame: (_, { game }) => {
+      if (game.phase !== "placement") {
+        throw Rune.invalidAction();
+      }
+
+      game.phase = "game";
     },
 
     bombCell: (cell, { game, playerId }) => {
-      if (game.state !== "game") {
+      if (game.phase !== "game") {
         throw Rune.invalidAction();
       }
 
@@ -156,29 +176,77 @@ Rune.initLogic({
 
       const targetCell = targetBoard[cell.x][cell.y];
 
+      if (targetCell.state != undefined) {
+        throw Rune.invalidAction();
+      }
+
       if (targetCell.ship) {
-        game.boards[playerId][cell.x][cell.y].state = "hit";
-        // targetCell.state = "hit";
+        targetCell.state = "hit";
+
+        if (haveAllShipsSunk(targetBoard)) {
+          game.lastEvent = "game over";
+          game.winner = playerId;
+          Rune.gameOver({
+            players: {
+              [game.playerIds[0]]:
+                game.playerIds[0] === playerId ? "WON" : "LOST",
+              [game.playerIds[1]]:
+                game.playerIds[1] === playerId ? "WON" : "LOST",
+            },
+            delayPopUp: true,
+          });
+
+          return;
+        }
+
+        if (isShipSunk(targetBoard, targetCell.ship)) {
+          game.lastEvent = "sunk";
+        } else {
+          game.lastEvent = "hit";
+        }
       } else {
-        game.boards[playerId][cell.x][cell.y].state = "miss";
-        // targetCell.state = "miss";
+        targetCell.state = "miss";
+        game.lastEvent = "miss";
       }
     },
 
     updateBoard: (board, { game, playerId }) => {
-      // if (game.state !== "game") {
-      //   throw Rune.invalidAction();
-      // }
-
       game.boards[playerId] = board;
 
       console.log("Player", playerId, "updated board", board);
     },
 
     nextTurn: (_, { game }) => {
+      if (game.phase !== "game") {
+        throw Rune.invalidAction();
+      }
+
       const currentPlayerIndex = game.playerIds.indexOf(game.turn);
       const nextPlayerIndex = (currentPlayerIndex + 1) % game.playerIds.length;
       game.turn = game.playerIds[nextPlayerIndex];
+    },
+
+    gameEnd: (_, { game }) => {
+      if (!game.winner) {
+        throw Rune.invalidAction();
+      }
+
+      Rune.gameOver({
+        players: {
+          [game.playerIds[0]]:
+            game.playerIds[0] === game.winner ? "WON" : "LOST",
+          [game.playerIds[1]]:
+            game.playerIds[1] === game.winner ? "WON" : "LOST",
+        },
+      });
+    },
+
+    setLastEvent: (event, { game }) => {
+      game.lastEvent = event;
+    },
+
+    clearLastEvent: (_, { game }) => {
+      game.lastEvent = null;
     },
   },
 });
