@@ -94,24 +94,24 @@ Rune.initLogic({
   maxPlayers: 2,
   setup: (allPlayerIds: PlayerId[]) => {
     const defaultShipPositions: Ship[] = [
-      // {
-      //   type: "default",
-      //   count: 5,
-      //   orientation: "horizontal",
-      //   startingPosition: { x: 4, y: 5 },
-      // },
-      // {
-      //   type: "scarf",
-      //   count: 4,
-      //   orientation: "vertical",
-      //   startingPosition: { x: 3, y: 8 },
-      // },
-      // {
-      //   type: "hat",
-      //   count: 3,
-      //   orientation: "horizontal",
-      //   startingPosition: { x: 8, y: 7 },
-      // },
+      {
+        type: "default",
+        count: 5,
+        orientation: "horizontal",
+        startingPosition: { x: 4, y: 5 },
+      },
+      {
+        type: "scarf",
+        count: 4,
+        orientation: "vertical",
+        startingPosition: { x: 3, y: 8 },
+      },
+      {
+        type: "hat",
+        count: 3,
+        orientation: "horizontal",
+        startingPosition: { x: 8, y: 7 },
+      },
       {
         type: "pirate",
         count: 2,
