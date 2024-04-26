@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@uidotdev/usehooks": "^2.4.1",
+    "@zattoo/use-double-click": "^1.2.0",
     "clsx": "^2.1.0",
     "framer-motion": "^11.0.24",
     "react": "^18.2.0",

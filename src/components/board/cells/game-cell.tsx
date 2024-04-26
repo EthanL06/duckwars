@@ -9,19 +9,19 @@ import Hit from "../../../assets/cell/hit.svg";
 import Target from "../../../assets/cell/target.svg";
 import { cn } from "../../../lib/utils";
 import { GameContext } from "../../../context/GameContext";
-import { useLongPress } from "@uidotdev/usehooks";
 import { PlayerId } from "rune-games-sdk";
 import { PlayFunction } from "use-sound";
 import { Cell } from "../../../logic";
+import { useDoubleClick } from "@zattoo/use-double-click";
 
 type GameCellProps = {
   x: number;
   y: number;
-  playSound: PlayFunction;
+  playTargetSound: PlayFunction;
   onBombCell: (cell: Cell) => void;
 };
 
-const GameCell = ({ x, y, playSound, onBombCell }: GameCellProps) => {
+const GameCell = ({ x, y, playTargetSound, onBombCell }: GameCellProps) => {
   const { board, selectedCell, setSelectedCell, state, playerID } =
     useContext(GameContext);
 
@@ -42,18 +42,20 @@ const GameCell = ({ x, y, playSound, onBombCell }: GameCellProps) => {
     }
   };
 
-  const attrs = useLongPress(
-    () => {
+  const onCellClick = () => {
+    const opponentsBoard =
+      state.boards[state.playerIds.find((id) => id !== playerID) as PlayerId];
+
+    if (state.turn !== playerID || opponentsBoard[x][y].state != undefined)
       return;
-    },
-    {
-      onFinish: (event) => {
-        event.preventDefault();
-        bombCell(board[x][y]);
-      },
-      threshold: 500,
-    },
-  );
+
+    playTargetSound();
+    setSelectedCell(board[x][y]);
+  };
+
+  const hybridClick = useDoubleClick(() => {
+    bombCell(board[x][y]);
+  }, onCellClick);
 
   const selectDuckComponent = () => {
     const ship = board[x][y].ship;
@@ -146,22 +148,10 @@ const GameCell = ({ x, y, playSound, onBombCell }: GameCellProps) => {
     }
   };
 
-  const onCellClick = () => {
-    const opponentsBoard =
-      state.boards[state.playerIds.find((id) => id !== playerID) as PlayerId];
-
-    if (state.turn !== playerID || opponentsBoard[x][y].state != undefined)
-      return;
-
-    playSound({ id: "duck-1" });
-    setSelectedCell(board[x][y]);
-  };
-
   return (
-    <button
+    <div
       tabIndex={-1}
-      onClick={onCellClick}
-      {...attrs}
+      onClick={hybridClick}
       className={cn(
         "aspect-square w-[10%] rounded bg-cell hover:cursor-pointer disabled:cursor-default",
       )}
@@ -174,7 +164,7 @@ const GameCell = ({ x, y, playSound, onBombCell }: GameCellProps) => {
       >
         {selectCellImage()}
       </div>
-    </button>
+    </div>
   );
 };
 

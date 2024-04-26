@@ -1,13 +1,67 @@
-import React, { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { createPortal } from "react-dom";
 import hitImage from "../../assets/cell/hit.svg";
 import missImage from "../../assets/cell/miss-splash.svg";
 import inactiveImage from "../../assets/misc/inactive.svg";
 import { GameContext } from "../../context/GameContext";
 import { AnimatePresence, motion } from "framer-motion";
+import hitSound from "../../assets/sfx/hit.wav";
+import missSound from "../../assets/sfx/miss.wav";
+import skipSound from "../../assets/sfx/skip.flac";
+import winSound from "../../assets/sfx/win.wav";
+import loseSound from "../../assets/sfx/lose.wav";
+import useSound from "use-sound";
 
 const Event = () => {
-  const { state } = useContext(GameContext);
+  const { state, playerID } = useContext(GameContext);
+
+  const [playHit] = useSound(hitSound);
+  const [playMiss] = useSound(missSound);
+  const [playSkip] = useSound(skipSound);
+  const [playWin] = useSound(winSound);
+  const [playLose] = useSound(loseSound);
+
+  useEffect(() => {
+    switch (state.lastEvent) {
+      case "hit":
+      case "sunk":
+        // Wait 0.7 seconds before playing the sound
+        setTimeout(() => {
+          playHit();
+        }, 700);
+
+        break;
+      case "miss":
+        setTimeout(() => {
+          playMiss();
+        }, 700);
+        break;
+      case "inactive":
+        setTimeout(() => {
+          playSkip();
+        }, 700);
+        break;
+      case "game over":
+        if (state.winner === playerID) {
+          setTimeout(() => {
+            playWin();
+          }, 700);
+        } else {
+          setTimeout(() => {
+            playLose();
+          }, 700);
+        }
+        break;
+    }
+  }, [
+    playHit,
+    playMiss,
+    playSkip,
+    playWin,
+    playerID,
+    state.lastEvent,
+    state.winner,
+  ]);
 
   return (
     <>{createPortal(<EventContent type={state.lastEvent} />, document.body)}</>
@@ -56,7 +110,7 @@ const EventContent = ({
             },
           }}
           exit={{ opacity: 0, transition: { duration: 0.2 } }}
-          className="absolute left-0 top-0 z-10 flex h-full w-full  flex-col items-center justify-center rounded border-2 border-gray-300 bg-slate-950/90 px-6  py-5 text-center text-6xl font-bold text-white"
+          className="absolute left-0 top-0 z-10 flex h-full w-full  flex-col items-center justify-center  bg-slate-950/90 px-6  py-5 text-center text-6xl font-bold text-white"
         >
           <motion.img
             initial={{ scale: 0.5, opacity: 0 }}
