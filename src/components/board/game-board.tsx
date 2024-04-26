@@ -33,6 +33,7 @@ const GameBoard = ({ className }: GameBoardProps) => {
       countStart: 25,
       intervalMs: 1000,
     });
+  const [showingEvent, setShowingEvent] = useState(true);
 
   useClickAnyWhere(() => {
     if (state.phase === "game" && state.turn === playerID) {
@@ -104,7 +105,7 @@ const GameBoard = ({ className }: GameBoardProps) => {
     }
   };
 
-  if (board === undefined) {
+  if (board === undefined || !showingEvent) {
     return (
       <div className={className}>
         <SpectatorView />
@@ -144,7 +145,7 @@ const GameBoard = ({ className }: GameBoardProps) => {
           </div>
         ))}
 
-        <Event />
+        <Event shown={showingEvent} setShown={setShowingEvent} />
       </div>
     </div>
   );

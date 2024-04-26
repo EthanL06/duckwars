@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import hitImage from "../../assets/cell/hit.svg";
 import missImage from "../../assets/cell/miss-splash.svg";
@@ -12,7 +12,13 @@ import winSound from "../../assets/sfx/win.wav";
 import loseSound from "../../assets/sfx/lose.wav";
 import useSound from "use-sound";
 
-const Event = () => {
+const Event = ({
+  shown,
+  setShown,
+}: {
+  shown: boolean;
+  setShown: (shown: boolean) => void;
+}) => {
   const { state, playerID } = useContext(GameContext);
 
   const [playHit] = useSound(hitSound);
@@ -55,6 +61,7 @@ const Event = () => {
     }
   }, [
     playHit,
+    playLose,
     playMiss,
     playSkip,
     playWin,
@@ -64,14 +71,27 @@ const Event = () => {
   ]);
 
   return (
-    <>{createPortal(<EventContent type={state.lastEvent} />, document.body)}</>
+    <>
+      {createPortal(
+        <EventContent
+          type={state.lastEvent}
+          shown={shown}
+          setShown={setShown}
+        />,
+        document.body,
+      )}
+    </>
   );
 };
 
 const EventContent = ({
   type,
+  shown,
+  setShown,
 }: {
   type: "hit" | "miss" | "sunk" | "inactive" | "game over" | null;
+  shown: boolean;
+  setShown: (shown: boolean) => void;
 }) => {
   const { playerID, state } = useContext(GameContext);
 
@@ -99,7 +119,7 @@ const EventContent = ({
 
   return (
     <AnimatePresence>
-      {type != null && (
+      {type != null && shown && (
         <motion.div
           key={"event"}
           initial={{ opacity: 0 }}
@@ -110,7 +130,7 @@ const EventContent = ({
             },
           }}
           exit={{ opacity: 0, transition: { duration: 0.2 } }}
-          className="absolute left-0 top-0 z-10 flex h-full w-full  flex-col items-center justify-center  bg-slate-950/90 px-6  py-5 text-center text-6xl font-bold text-white"
+          className="absolute left-0 top-0 z-10 flex h-full w-full flex-col items-center justify-center overflow-hidden  bg-slate-950/90 px-6  py-5 text-center text-6xl font-bold text-white"
         >
           <motion.img
             initial={{ scale: 0.5, opacity: 0 }}
@@ -171,6 +191,26 @@ const EventContent = ({
               {type === "game over"
                 ? subtitle["game over"]
                 : subtitle["default"]}
+
+              {type == "game over" && (
+                <div>
+                  <motion.button
+                    onClick={() => {
+                      setShown(false);
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{
+                      opacity: 1,
+                      transition: {
+                        delay: 2,
+                      },
+                    }}
+                    className="relative mt-4 w-full text-pretty rounded bg-black p-2 text-white transition-transform active:scale-90"
+                  >
+                    View Board
+                  </motion.button>
+                </div>
+              )}
             </motion.div>
           </div>
         </motion.div>

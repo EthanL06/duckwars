@@ -45,14 +45,11 @@ const Timer = ({
     return () => clearInterval(interval);
   }, [count, state.winner, playTick]);
 
-  if (state.winner) {
-    return null;
-  }
-
   return (
     <motion.div
       className={cn(
         "relative mx-auto flex h-4 w-full max-w-[400px] items-center justify-center overflow-clip rounded-full bg-[#E6FDFF] font-black text-white",
+        state.winner && "hidden",
       )}
       variants={{
         hidden: {

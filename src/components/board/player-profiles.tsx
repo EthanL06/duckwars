@@ -40,7 +40,8 @@ const PlayerProfiles = ({
                 style={{ zIndex: state.playerIds.length - index }}
                 className={cn(
                   "relative right-1 h-6 w-6 rounded-full first:right-0",
-                  playerID == undefined && "outline-green-500 active:outline",
+                  playerID == undefined ||
+                    (state.winner && "outline-green-500 active:outline"),
                 )}
               >
                 <img

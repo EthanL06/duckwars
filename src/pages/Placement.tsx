@@ -69,9 +69,11 @@ const SpectatorPlacementView = () => {
 
       <div className="mx-auto flex flex-col items-center justify-center">
         <button
-          onClick={play({
-            id: "duck-1",
-          })}
+          onClick={() => {
+            play({
+              id: "duck-1",
+            });
+          }}
           className="size-20 transition-all hover:scale-110 active:scale-90"
         >
           <img className="size-full" src={Default} />
