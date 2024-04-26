@@ -144,7 +144,7 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
   };
 
   return (
-    <button
+    <div
       tabIndex={-1}
       onClick={onCellClick}
       className={cn(
@@ -182,7 +182,7 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-    </button>
+    </div>
   );
 };
 

@@ -1,19 +1,28 @@
-import React, { useContext } from "react";
+import React, { MouseEventHandler, useContext, useEffect } from "react";
 import { GameContext } from "../../context/GameContext";
 import { cn } from "../../lib/utils";
+import useSound from "use-sound";
+import joinSound from "../../assets/sfx/join.wav";
 
-const PlayerProfiles = ({ className }: { className?: string }) => {
-  const { state } = useContext(GameContext);
-
+const PlayerProfiles = ({
+  className,
+  onSpectatorClick,
+}: {
+  className?: string;
+  onSpectatorClick?: MouseEventHandler;
+}) => {
+  const { state, playerID } = useContext(GameContext);
+  const [play] = useSound(joinSound);
   const placementClasses = (playerId: string) => {
     return state.ready[playerId] ? "opacity-100" : "opacity-15";
   };
 
-  const gameClasses = (playerId: string) => {
-    return playerId === state.turn
-      ? "brightness-100"
-      : "opacity-30 brightness-50";
-  };
+  useEffect(() => {
+    // If one player is ready
+    if (state.ready[state.playerIds[1]] || state.ready[state.playerIds[0]]) {
+      play();
+    }
+  }, [state.ready, play, state.playerIds]);
 
   return (
     <div className={cn("flex items-center justify-center", className)}>
@@ -22,16 +31,27 @@ const PlayerProfiles = ({ className }: { className?: string }) => {
         return (
           <React.Fragment key={index}>
             {playerInfo && (
-              <img
+              <button
+                onClick={() => {
+                  if (onSpectatorClick) {
+                    onSpectatorClick(playerInfo.playerId);
+                  }
+                }}
                 style={{ zIndex: state.playerIds.length - index }}
-                src={playerInfo.avatarUrl}
-                alt="avatar"
                 className={cn(
                   "relative right-1 h-6 w-6 rounded-full first:right-0",
-                  state.phase === "placement" && placementClasses(playerId),
-                  state.phase === "game" && gameClasses(playerId),
+                  playerID == undefined ||
+                    (state.winner && "outline-green-500 active:outline"),
                 )}
-              />
+              >
+                <img
+                  src={playerInfo.avatarUrl}
+                  alt="avatar"
+                  className={cn(
+                    state.phase === "placement" && placementClasses(playerId),
+                  )}
+                />
+              </button>
             )}
           </React.Fragment>
         );

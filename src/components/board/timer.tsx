@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { cn } from "../../lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { GameContext } from "../../context/GameContext";
+import tickSound from "../../assets/sfx/tick.wav";
+import useSound from "use-sound";
 
 type Props = {
   className?: string;
@@ -18,6 +20,13 @@ const Timer = ({
 }) => {
   const { state } = useContext(GameContext);
   const [position, setPosition] = useState(-2);
+  const [playTick] = useSound(tickSound);
+
+  useEffect(() => {
+    if (count <= 5 && count >= 1) {
+      playTick();
+    }
+  }, [count, playTick]);
 
   useEffect(() => {
     if (state.winner) {
@@ -34,16 +43,13 @@ const Timer = ({
       }
     }, 195);
     return () => clearInterval(interval);
-  }, [count, state.winner]);
-
-  if (state.winner) {
-    return null;
-  }
+  }, [count, state.winner, playTick]);
 
   return (
     <motion.div
       className={cn(
         "relative mx-auto flex h-4 w-full max-w-[400px] items-center justify-center overflow-clip rounded-full bg-[#E6FDFF] font-black text-white",
+        state.winner && "hidden",
       )}
       variants={{
         hidden: {
@@ -219,7 +225,7 @@ const TimerImage = ({ className, style }: Props) => {
             gradientUnits="userSpaceOnUse"
           >
             <stop stopColor="#8EF4FF" />
-            <stop offset="1" stop-color="#ADF7FF" />
+            <stop offset="1" stopColor="#ADF7FF" />
           </linearGradient>
         </defs>
       </svg>

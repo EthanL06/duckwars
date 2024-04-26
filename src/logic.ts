@@ -1,4 +1,4 @@
-import type { PlayerId, RuneClient } from "rune-games-sdk";
+import { PlayerId, RuneClient } from "rune-games-sdk";
 
 export interface Position {
   x: number;
@@ -98,25 +98,25 @@ Rune.initLogic({
         type: "default",
         count: 5,
         orientation: "horizontal",
-        startingPosition: { x: 0, y: 4 },
+        startingPosition: { x: 4, y: 5 },
       },
       {
         type: "scarf",
         count: 4,
         orientation: "vertical",
-        startingPosition: { x: 5, y: 3 },
+        startingPosition: { x: 3, y: 8 },
       },
       {
         type: "hat",
         count: 3,
         orientation: "horizontal",
-        startingPosition: { x: 5, y: 7 },
+        startingPosition: { x: 8, y: 7 },
       },
       {
         type: "pirate",
         count: 2,
         orientation: "vertical",
-        startingPosition: { x: 6, y: 1 },
+        startingPosition: { x: 8, y: 2 },
       },
     ];
 
@@ -137,7 +137,7 @@ Rune.initLogic({
         [allPlayerIds[1]]: defaultShipPositions,
       },
       playerIds: allPlayerIds,
-      turn: allPlayerIds[0],
+      turn: allPlayerIds[Math.floor(Math.random() * allPlayerIds.length)],
       ready: {
         [allPlayerIds[0]]: false,
         [allPlayerIds[1]]: false,
@@ -247,6 +247,11 @@ Rune.initLogic({
 
     clearLastEvent: (_, { game }) => {
       game.lastEvent = null;
+    },
+  },
+  events: {
+    playerJoined(playerId, { game }) {
+      return;
     },
   },
 });
