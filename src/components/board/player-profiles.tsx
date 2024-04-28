@@ -1,4 +1,4 @@
-import React, { MouseEventHandler, useContext, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { GameContext } from "../../context/GameContext";
 import { cn } from "../../lib/utils";
 import useSound from "use-sound";
@@ -9,7 +9,7 @@ const PlayerProfiles = ({
   onSpectatorClick,
 }: {
   className?: string;
-  onSpectatorClick?: MouseEventHandler;
+  onSpectatorClick?: (playerId: string) => void;
 }) => {
   const { state, playerID } = useContext(GameContext);
   const [play] = useSound(joinSound);

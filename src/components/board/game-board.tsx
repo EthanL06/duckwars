@@ -170,7 +170,7 @@ const GameHeader = () => {
 };
 
 const SpectatorView = () => {
-  const [playerViewId, setPlayerViewId] = useState<PlayerId>(null);
+  const [playerViewId, setPlayerViewId] = useState<PlayerId | null>(null);
 
   const { state } = useContext(GameContext);
 
@@ -198,18 +198,23 @@ const SpectatorView = () => {
           "relative mx-auto mt-5 flex w-full max-w-[400px] flex-col items-center justify-center space-y-[1px] min-[200px]:space-y-0.5 min-[250px]:space-y-1",
         )}
       >
-        {state.boards[playerViewId]?.map((row, i) => (
-          <div
-            key={i}
-            className=" flex w-full gap-[1px] min-[200px]:gap-0.5 min-[250px]:gap-1"
-          >
-            {row.map((cell, j) => (
-              <React.Fragment key={`${i}-${j}`}>
-                <SpectatorCell x={i} y={j} board={state.boards[playerViewId]} />
-              </React.Fragment>
-            ))}
-          </div>
-        ))}
+        {playerViewId != null &&
+          state.boards[playerViewId]?.map((row, i) => (
+            <div
+              key={i}
+              className=" flex w-full gap-[1px] min-[200px]:gap-0.5 min-[250px]:gap-1"
+            >
+              {row.map((cell, j) => (
+                <React.Fragment key={`${i}-${j}`}>
+                  <SpectatorCell
+                    x={i}
+                    y={j}
+                    board={state.boards[playerViewId]}
+                  />
+                </React.Fragment>
+              ))}
+            </div>
+          ))}
       </div>
     </div>
   );
