@@ -3,6 +3,9 @@ import { createPortal } from "react-dom";
 import hitImage from "../../assets/cell/hit.svg";
 import missImage from "../../assets/cell/miss-splash.svg";
 import inactiveImage from "../../assets/misc/inactive.svg";
+import sunkImage from "../../assets/misc/duck_sunk.png";
+import winImage from "../../assets/misc/win.svg";
+import loseImage from "../../assets/misc/lose.svg";
 import { GameContext } from "../../context/GameContext";
 import { AnimatePresence, motion } from "framer-motion";
 import hitSound from "../../assets/sfx/hit.wav";
@@ -35,7 +38,6 @@ const Event = ({
         setTimeout(() => {
           playHit();
         }, 700);
-
         break;
       case "miss":
         setTimeout(() => {
@@ -99,8 +101,8 @@ const EventContent = ({
     hit: hitImage,
     miss: missImage,
     inactive: inactiveImage,
-    sunk: hitImage,
-    "game over": hitImage,
+    sunk: sunkImage,
+    "game over": state.winner === playerID ? winImage : loseImage,
   };
 
   const message = {

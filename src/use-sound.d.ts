@@ -7,6 +7,7 @@ declare module "use-sound" {
     interrupt?: boolean;
     soundEnabled?: boolean;
     sprite?: { [key: string]: [number, number] };
+    loop?: boolean;
     // You can add more properties as needed based on your use case
   }
 

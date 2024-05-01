@@ -43,7 +43,7 @@ const GameCell = ({ x, y, playTargetSound, onBombCell }: GameCellProps) => {
   };
 
   const onCellClick = () => {
-    if (state.winner) return;
+    if (state.winner || state.turn != playerID) return;
 
     const opponentsBoard =
       state.boards[state.playerIds.find((id) => id !== playerID) as PlayerId];
@@ -56,7 +56,8 @@ const GameCell = ({ x, y, playTargetSound, onBombCell }: GameCellProps) => {
   };
 
   const hybridClick = useDoubleClick(() => {
-    if (state.winner) return;
+    if (state.winner || state.turn != playerID) return;
+        
     bombCell(board[x][y]);
   }, onCellClick);
 
