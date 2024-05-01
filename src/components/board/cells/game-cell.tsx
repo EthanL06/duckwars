@@ -57,6 +57,7 @@ const GameCell = ({ x, y, playTargetSound, onBombCell }: GameCellProps) => {
 
   const hybridClick = useDoubleClick(() => {
     if (state.winner || state.turn != playerID) return;
+        
     bombCell(board[x][y]);
   }, onCellClick);
 
