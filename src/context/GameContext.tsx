@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import { Board, Cell, GameState } from "../logic";
 import { PlayerId } from "rune-games-sdk";
+import { EVENT_DURATION } from "../lib/constants";
 
 interface GameContextType {
   state: GameState;
@@ -65,7 +66,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
 
           setTimeout(() => {
             Rune.actions.clearLastEvent();
-          }, 5000);
+          }, EVENT_DURATION - 300);
         }
       },
     });

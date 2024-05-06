@@ -190,9 +190,7 @@ const EventContent = ({
               exit={{ opacity: 0, left: -50 }}
               className="relative mt-1 text-2xl font-medium text-slate-400"
             >
-              {type === "game over"
-                ? subtitle["game over"]
-                : subtitle["default"]}
+              {type === "game over" && subtitle["game over"]}
 
               {type == "game over" && (
                 <div>
