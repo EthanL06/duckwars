@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import Default from "../../ducks/default";
 import Scarf from "../../ducks/scarf";
@@ -13,6 +13,7 @@ import { PlayerId } from "rune-games-sdk";
 import { PlayFunction } from "use-sound";
 import { Cell } from "../../../logic";
 import { useDoubleClick } from "@zattoo/use-double-click";
+import { EVENT_DURATION } from "../../../lib/constants";
 
 type GameCellProps = {
   x: number;
@@ -24,16 +25,19 @@ type GameCellProps = {
 const GameCell = ({ x, y, playTargetSound, onBombCell }: GameCellProps) => {
   const { board, selectedCell, setSelectedCell, state, playerID } =
     useContext(GameContext);
+  const [showCellImage, setShowCellImage] = useState(true);
 
   const bombCell = (cell: Cell) => {
     if (isCellSelected()) {
+      setShowCellImage(false);
       Rune.actions.bombCell(cell);
       onBombCell(cell);
 
       setSelectedCell(null);
       setTimeout(() => {
+        setShowCellImage(true);
         Rune.actions.nextTurn();
-      }, 5150);
+      }, EVENT_DURATION);
     } else {
       const opponentsBoard =
         state.boards[state.playerIds.find((id) => id !== playerID) as PlayerId];
@@ -55,11 +59,17 @@ const GameCell = ({ x, y, playTargetSound, onBombCell }: GameCellProps) => {
     setSelectedCell(board[x][y]);
   };
 
-  const hybridClick = useDoubleClick(() => {
-    if (state.winner || state.turn != playerID) return;
-        
-    bombCell(board[x][y]);
-  }, onCellClick);
+  const hybridClick = useDoubleClick(
+    () => {
+      if (state.winner || state.turn != playerID) return;
+
+      bombCell(board[x][y]);
+    },
+    onCellClick,
+    {
+      timeout: 50,
+    },
+  );
 
   const selectDuckComponent = () => {
     const ship = board[x][y].ship;
@@ -166,7 +176,7 @@ const GameCell = ({ x, y, playTargetSound, onBombCell }: GameCellProps) => {
           isCellSelected() && "animate-pulse",
         )}
       >
-        {selectCellImage()}
+        {showCellImage && selectCellImage()}
       </div>
     </div>
   );

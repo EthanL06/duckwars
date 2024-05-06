@@ -13,6 +13,7 @@ import { useCountdown, useClickAnyWhere } from "usehooks-ts";
 import PlayerProfiles from "./player-profiles";
 import SpectatorCell from "./cells/spectator-cell";
 import { PlayerId } from "rune-games-sdk";
+import { EVENT_DURATION } from "../../lib/constants";
 
 type GameBoardProps = {
   className?: string;
@@ -66,7 +67,7 @@ const GameBoard = ({ className }: GameBoardProps) => {
       setSelectedCell(null);
       setTimeout(() => {
         Rune.actions.nextTurn();
-      }, 5150);
+      }, EVENT_DURATION);
     }
   }, [count, resetCountdown, setSelectedCell, stopCountdown]);
 
@@ -98,7 +99,6 @@ const GameBoard = ({ className }: GameBoardProps) => {
             onBombCell={() => {
               stopCountdown();
               resetCountdown();
-              console.log("bomb cell");
             }}
           />
         );
