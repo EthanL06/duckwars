@@ -1,5 +1,4 @@
 import { useContext, useState } from "react";
-
 import Default from "../../ducks/default";
 import Scarf from "../../ducks/scarf";
 import Hat from "../../ducks/hat";
