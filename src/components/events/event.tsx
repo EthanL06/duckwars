@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { createPortal } from "react-dom";
 import hitImage from "../../assets/cell/hit.svg";
 import missImage from "../../assets/cell/miss-splash.svg";

@@ -9,6 +9,8 @@ interface GameContextType {
   board: Board;
   selectedCell: Cell | null;
   setSelectedCell: (cell: Cell | null) => void;
+  setIsRotating: (isRotating: boolean) => void;
+  isRotating: boolean;
 }
 
 export const GameContext = createContext<GameContextType>({
@@ -27,6 +29,10 @@ export const GameContext = createContext<GameContextType>({
   setSelectedCell: () => {
     return null;
   },
+  isRotating: false,
+  setIsRotating: () => {
+    return false;
+  },
 });
 
 export const GameProvider = ({ children }: { children: React.ReactNode }) => {
@@ -44,6 +50,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const [board, setBoard] = useState<Board>([]);
   const [selectedCell, setSelectedCell] = useState<Cell | null>(null);
   const [gamePhase, setGamePhase] = useState<string>("placement");
+  const [isRotating, setIsRotating] = useState<boolean>(false);
 
   useEffect(() => {
     Rune.initClient({
@@ -66,7 +73,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
 
           setTimeout(() => {
             Rune.actions.clearLastEvent();
-          }, EVENT_DURATION - 300);
+          }, EVENT_DURATION - 350);
         }
       },
     });
@@ -80,6 +87,8 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         board,
         selectedCell,
         setSelectedCell,
+        isRotating,
+        setIsRotating,
       }}
     >
       {children}

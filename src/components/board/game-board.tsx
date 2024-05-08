@@ -1,6 +1,6 @@
 import PlacementCell from "./cells/placement-cell";
-import { cn, duckSoundSpriteMap } from "../../lib/utils";
-import React, { useContext, useEffect, useState } from "react";
+import { cn, duckSoundSpriteMap, isValidPosition } from "../../lib/utils";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { GameContext } from "../../context/GameContext";
 import GameCell from "./cells/game-cell";
 import { Cell } from "../../logic";
@@ -14,6 +14,7 @@ import PlayerProfiles from "./player-profiles";
 import SpectatorCell from "./cells/spectator-cell";
 import { PlayerId } from "rune-games-sdk";
 import { EVENT_DURATION } from "../../lib/constants";
+import DragAndDrop from "./drag-and-drop";
 
 type GameBoardProps = {
   className?: string;
@@ -21,9 +22,6 @@ type GameBoardProps = {
 
 const GameBoard = ({ className }: GameBoardProps) => {
   const { board, state, playerID, setSelectedCell } = useContext(GameContext);
-  const [clickedCell, setClickedCell] = useState<Cell | null>(null);
-  const [selectedCells, setSelectedCells] = useState<Cell[]>([]);
-  const [isMoving, setIsMoving] = useState(false);
   const [playDuckSound] = useSound(rubberDuckSound, {
     sprite: duckSoundSpriteMap,
   });
@@ -35,6 +33,14 @@ const GameBoard = ({ className }: GameBoardProps) => {
       intervalMs: 1000,
     });
   const [showingEvent, setShowingEvent] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  // The cell with the duck we are dragging
+  const [selectedDraggingCell, setSelectedDraggingCell] = useState<Cell | null>(
+    null,
+  );
+  const boardRef = useRef<HTMLDivElement>(null);
+  // The cell we are dragging over
+  const [draggedOverCell, setDraggedOverCell] = useState<Cell | null>(null);
 
   useClickAnyWhere(() => {
     if (state.phase === "game" && state.turn === playerID) {
@@ -71,6 +77,22 @@ const GameBoard = ({ className }: GameBoardProps) => {
     }
   }, [count, resetCountdown, setSelectedCell, stopCountdown]);
 
+  useEffect(() => {
+    if (!selectedDraggingCell || !draggedOverCell) {
+      return;
+    }
+
+    console.log(selectedDraggingCell);
+    console.log("Dragged over cell", draggedOverCell);
+
+    if (selectedDraggingCell.ship) {
+      console.log(
+        "isValid:",
+        isValidPosition(board, selectedDraggingCell.ship, draggedOverCell),
+      );
+    }
+  }, [selectedDraggingCell, draggedOverCell, board]);
+
   const renderCell = (x: number, y: number) => {
     switch (state.phase) {
       case "placement":
@@ -78,16 +100,13 @@ const GameBoard = ({ className }: GameBoardProps) => {
           <PlacementCell
             x={x}
             y={y}
-            isSelected={selectedCells.some(
-              (cell) => cell.x === x && cell.y === y,
-            )}
-            setSelectedCells={setSelectedCells}
-            selectedShip={selectedCells[0]?.ship || null}
-            setIsMoving={setIsMoving}
-            isMoving={isMoving}
-            setClickedCell={setClickedCell}
-            clickedCell={clickedCell}
             playSound={playDuckSound}
+            setIsDragging={setIsDragging}
+            isDragging={isDragging}
+            selectedDraggingCell={selectedDraggingCell}
+            setSelectedDraggingCell={setSelectedDraggingCell}
+            draggedOverCell={draggedOverCell}
+            setDraggedOverCell={setDraggedOverCell}
           />
         );
       case "game":
@@ -114,7 +133,7 @@ const GameBoard = ({ className }: GameBoardProps) => {
   }
 
   return (
-    <div className={className}>
+    <div className={cn(className)}>
       {state.phase === "game" && (
         <>
           <Timer
@@ -128,6 +147,7 @@ const GameBoard = ({ className }: GameBoardProps) => {
       )}
 
       <div
+        ref={boardRef}
         className={cn(
           "relative mx-auto mt-5 flex w-full max-w-[400px] flex-col items-center justify-center space-y-[1px] min-[200px]:space-y-0.5 min-[250px]:space-y-1",
         )}
@@ -146,6 +166,12 @@ const GameBoard = ({ className }: GameBoardProps) => {
         ))}
 
         <Event shown={showingEvent} setShown={setShowingEvent} />
+
+        <DragAndDrop
+          isDragging={isDragging}
+          selectedDraggingCell={selectedDraggingCell}
+          boardRef={boardRef}
+        />
       </div>
     </div>
   );
