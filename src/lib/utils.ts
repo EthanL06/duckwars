@@ -90,11 +90,25 @@ export const moveShip = (board: Board, ship: Ship, newCell: Cell) => {
 const toggleOrientation = (orientation: string) =>
   orientation === "vertical" ? "horizontal" : "vertical";
 
+export const isValidRotation = (
+  board: Board,
+  ship: Ship,
+  currentPosition: Position,
+) => {
+  const newOrientation = toggleOrientation(ship.orientation) as
+    | "horizontal"
+    | "vertical";
+
+  const newShip = { ...ship, orientation: newOrientation };
+
+  return isValidPosition(board, newShip, currentPosition);
+};
+
 export const rotateShip = (board: Board, selectedCell: Cell) => {
   const ship = selectedCell.ship;
 
   if (!ship) {
-    return;
+    return false;
   }
 
   const newOrientation = toggleOrientation(ship.orientation) as
@@ -106,10 +120,15 @@ export const rotateShip = (board: Board, selectedCell: Cell) => {
   const isValid = isValidPosition(board, newShip, ship.startingPosition);
 
   if (!isValid) {
-    return;
+    return false;
   }
 
   moveShip(board, newShip, ship.startingPosition);
+  return true;
+};
+
+export const getCell = (board: Board, x: number, y: number) => {
+  return board[x][y];
 };
 
 export const duckSoundSpriteMap: { [key: string]: [number, number] } = {

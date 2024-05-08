@@ -26,7 +26,7 @@ const Game = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex max-h-screen min-h-screen flex-col justify-between gap-y-5  overflow-y-hidden  bg-white"
+      className="flex max-h-screen min-h-screen touch-none flex-col justify-between gap-y-5  overflow-y-hidden  bg-white"
     >
       <div className="">
         <GameBoard className="px-4 pt-4 xxs:px-4" />
