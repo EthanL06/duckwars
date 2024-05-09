@@ -150,7 +150,7 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
   const onDragEnd = () => {
     if (!isDragging || isRotating) return;
     setIsDragging(false);
-
+        
     if (!selectedDraggingCell || !selectedDraggingCell.ship || !draggedOverCell)
       return;
 
