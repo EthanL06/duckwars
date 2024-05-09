@@ -175,7 +175,11 @@ const GameCell = ({ x, y, playTargetSound, onBombCell }: GameCellProps) => {
           isCellSelected() && "animate-pulse",
         )}
       >
-        {showCellImage && selectCellImage()}
+        {showCellImage ? (
+          selectCellImage()
+        ) : (
+          <img className="scale-up-down size-full" src={Target} alt="target" />
+        )}
       </div>
     </div>
   );

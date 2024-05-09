@@ -74,7 +74,7 @@ const DragAndDrop = ({ isDragging, selectedDraggingCell, boardRef }: Props) => {
         zIndex: 100,
       }}
       className={cn(
-        "flex",
+        "flex gap-0.5",
         orientation === "vertical" ? "flex-col-reverse" : "flex-row-reverse",
       )}
     >

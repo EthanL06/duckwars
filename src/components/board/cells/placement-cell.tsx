@@ -150,14 +150,30 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
   const onDragEnd = () => {
     if (!isDragging || isRotating) return;
     setIsDragging(false);
-
+        
     if (!selectedDraggingCell || !selectedDraggingCell.ship || !draggedOverCell)
       return;
 
-    if (!isValidPosition(board, selectedDraggingCell.ship, draggedOverCell))
-      return;
+    if (!isValidPosition(board, selectedDraggingCell.ship, draggedOverCell)) {
+      // const result = moveToOptimalPosition(
+      //   board,
+      //   {
+      //     x: draggedOverCell.x,
+      //     y: draggedOverCell.y,
+      //   },
+      //   selectedDraggingCell.ship,
+      // );
+      // if (result) {
+      //   playSound({
+      //     id: "duck-1",
+      //   });
+      //   setSelectedDraggingCell(null);
+      // }
 
-    moveShip(board, selectedDraggingCell?.ship as Ship, draggedOverCell);
+      return;
+    }
+
+    moveShip(board, selectedDraggingCell.ship as Ship, draggedOverCell);
     playSound({
       id: "duck-1",
     });
