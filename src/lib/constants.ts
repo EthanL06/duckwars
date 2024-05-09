@@ -1,1 +1,1 @@
-export const EVENT_DURATION = 3500;
+export const EVENT_DURATION = 3000;

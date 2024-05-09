@@ -73,7 +73,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
 
           setTimeout(() => {
             Rune.actions.clearLastEvent();
-          }, EVENT_DURATION - 350);
+          }, EVENT_DURATION);
         }
       },
     });
