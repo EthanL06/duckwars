@@ -1,11 +1,8 @@
-import PlacementCell from "./cells/placement-cell";
-import { cn, duckSoundSpriteMap, isValidPosition } from "../../lib/utils";
+import { cn } from "../../lib/utils";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { GameContext } from "../../context/GameContext";
 import GameCell from "./cells/game-cell";
-import { Cell } from "../../logic";
 import useSound from "use-sound";
-import rubberDuckSound from "../../assets/sfx/rubber_duck.wav";
 import selectSound from "../../assets/sfx/click.ogg";
 import Event from "../events/event";
 import Timer from "./timer";
@@ -14,33 +11,25 @@ import PlayerProfiles from "./player-profiles";
 import SpectatorCell from "./cells/spectator-cell";
 import { PlayerId } from "rune-games-sdk";
 import { EVENT_DURATION } from "../../lib/constants";
-import DragAndDrop from "./drag-and-drop";
 
 type GameBoardProps = {
   className?: string;
 };
 
 const GameBoard = ({ className }: GameBoardProps) => {
-  const { board, state, playerID, setSelectedCell } = useContext(GameContext);
-  const [playDuckSound] = useSound(rubberDuckSound, {
-    sprite: duckSoundSpriteMap,
-  });
-  const [playSelectSound] = useSound(selectSound);
+  const [showingEvent, setShowingEvent] = useState(true);
   const [isTimerShown, setIsTimerShown] = useState(false);
+
+  const { board, state, playerID, setSelectedCell } = useContext(GameContext);
   const [count, { startCountdown, stopCountdown, resetCountdown }] =
     useCountdown({
       countStart: 25,
       intervalMs: 1000,
     });
-  const [showingEvent, setShowingEvent] = useState(true);
-  const [isDragging, setIsDragging] = useState(false);
-  // The cell with the duck we are dragging
-  const [selectedDraggingCell, setSelectedDraggingCell] = useState<Cell | null>(
-    null,
-  );
+
+  const [playSelectSound] = useSound(selectSound);
+
   const boardRef = useRef<HTMLDivElement>(null);
-  // The cell we are dragging over
-  const [draggedOverCell, setDraggedOverCell] = useState<Cell | null>(null);
 
   useClickAnyWhere(() => {
     if (state.phase === "game" && state.turn === playerID) {
@@ -78,51 +67,8 @@ const GameBoard = ({ className }: GameBoardProps) => {
   }, [count, resetCountdown, setSelectedCell, stopCountdown]);
 
   useEffect(() => {
-    if (!selectedDraggingCell || !draggedOverCell) {
-      return;
-    }
-
-    console.log(selectedDraggingCell);
-    console.log("Dragged over cell", draggedOverCell);
-
-    if (selectedDraggingCell.ship) {
-      console.log(
-        "isValid:",
-        isValidPosition(board, selectedDraggingCell.ship, draggedOverCell),
-      );
-    }
-  }, [selectedDraggingCell, draggedOverCell, board]);
-
-  const renderCell = (x: number, y: number) => {
-    switch (state.phase) {
-      case "placement":
-        return (
-          <PlacementCell
-            x={x}
-            y={y}
-            playSound={playDuckSound}
-            setIsDragging={setIsDragging}
-            isDragging={isDragging}
-            selectedDraggingCell={selectedDraggingCell}
-            setSelectedDraggingCell={setSelectedDraggingCell}
-            draggedOverCell={draggedOverCell}
-            setDraggedOverCell={setDraggedOverCell}
-          />
-        );
-      case "game":
-        return (
-          <GameCell
-            x={x}
-            y={y}
-            playTargetSound={playSelectSound}
-            onBombCell={() => {
-              stopCountdown();
-              resetCountdown();
-            }}
-          />
-        );
-    }
-  };
+    console.log(board);
+  }, [board]);
 
   if (board === undefined || !showingEvent) {
     return (
@@ -159,19 +105,21 @@ const GameBoard = ({ className }: GameBoardProps) => {
           >
             {row.map((cell, j) => (
               <React.Fragment key={`${i}-${j}`}>
-                {renderCell(i, j)}
+                <GameCell
+                  x={i}
+                  y={j}
+                  playTargetSound={playSelectSound}
+                  onBombCell={() => {
+                    stopCountdown();
+                    resetCountdown();
+                  }}
+                />
               </React.Fragment>
             ))}
           </div>
         ))}
 
         <Event shown={showingEvent} setShown={setShowingEvent} />
-
-        <DragAndDrop
-          isDragging={isDragging}
-          selectedDraggingCell={selectedDraggingCell}
-          boardRef={boardRef}
-        />
       </div>
     </div>
   );
