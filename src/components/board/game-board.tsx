@@ -29,13 +29,13 @@ type GameBoardProps = {
 
 const GameBoard = ({ className }: GameBoardProps) => {
   // The cell we are dragging over
-  const [draggedOverCell, setDraggedOverCell] = useState<Cell | null>(null);
+  // const [draggedOverCell, setDraggedOverCell] = useState<Cell | null>(null);
   const [showingEvent, setShowingEvent] = useState(true);
-  const [isDragging, setIsDragging] = useState(false);
+  // const [isDragging, setIsDragging] = useState(false);
   // The cell with the duck we are dragging
-  const [selectedDraggingCell, setSelectedDraggingCell] = useState<Cell | null>(
-    null,
-  );
+  // const [selectedDraggingCell, setSelectedDraggingCell] = useState<Cell | null>(
+  //   null,
+  // );
   const [isTimerShown, setIsTimerShown] = useState(false);
 
   const { board, state, playerID, setSelectedCell } = useContext(GameContext);
@@ -107,36 +107,36 @@ const GameBoard = ({ className }: GameBoardProps) => {
   //   }
   // }, [selectedDraggingCell, draggedOverCell, board]);
 
-  const renderCell = (x: number, y: number) => {
-    switch (state.phase) {
-      case "placement":
-        return (
-          <PlacementCell
-            x={x}
-            y={y}
-            playSound={playDuckSound}
-            setIsDragging={setIsDragging}
-            isDragging={isDragging}
-            selectedDraggingCell={selectedDraggingCell}
-            setSelectedDraggingCell={setSelectedDraggingCell}
-            draggedOverCell={draggedOverCell}
-            setDraggedOverCell={setDraggedOverCell}
-          />
-        );
-      case "game":
-        return (
-          <GameCell
-            x={x}
-            y={y}
-            playTargetSound={playSelectSound}
-            onBombCell={() => {
-              stopCountdown();
-              resetCountdown();
-            }}
-          />
-        );
-    }
-  };
+  // const renderCell = (x: number, y: number) => {
+  //   switch (state.phase) {
+  //     case "placement":
+  //       return (
+  //         <PlacementCell
+  //           x={x}
+  //           y={y}
+  //           playSound={playDuckSound}
+  //           setIsDragging={setIsDragging}
+  //           isDragging={isDragging}
+  //           selectedDraggingCell={selectedDraggingCell}
+  //           setSelectedDraggingCell={setSelectedDraggingCell}
+  //           draggedOverCell={draggedOverCell}
+  //           setDraggedOverCell={setDraggedOverCell}
+  //         />
+  //       );
+  //     case "game":
+  //       return (
+  //         <GameCell
+  //           x={x}
+  //           y={y}
+  //           playTargetSound={playSelectSound}
+  //           onBombCell={() => {
+  //             stopCountdown();
+  //             resetCountdown();
+  //           }}
+  //         />
+  //       );
+  //   }
+  // };
 
   if (board === undefined || !showingEvent) {
     return (
@@ -175,19 +175,26 @@ const GameBoard = ({ className }: GameBoardProps) => {
           >
             {row.map((cell, j) => (
               <React.Fragment key={`${i}-${j}`}>
-                {renderCell(i, j)}
+                <GameCell
+                  x={i}
+                  y={j}
+                  playTargetSound={playSelectSound}
+                  onBombCell={() => {
+                    stopCountdown();
+                    resetCountdown();
+                  }}
+                />
               </React.Fragment>
             ))}
           </div>
         ))}
 
         <Event shown={showingEvent} setShown={setShowingEvent} />
-
+        {/* 
         <DragAndDrop
-          isDragging={isDragging}
           selectedDraggingCell={selectedDraggingCell}
           boardRef={boardRef}
-        />
+        /> */}
       </div>
     </div>
   );

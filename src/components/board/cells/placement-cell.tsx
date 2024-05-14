@@ -71,9 +71,9 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
       setDraggedOverCell,
       board,
       isRotating,
-    }).reduce((p, [k, v]) => {
-      if (prevProps.current[k] !== v) {
-        p[k] = [prevProps.current[k], v];
+    }).reduce((p: { [key: string]: any }, [k, v]) => {
+      if (prevProps.current[k as keyof typeof prevProps.current] !== v) {
+        p[k] = [prevProps.current[k as keyof typeof prevProps.current], v];
       }
       return p;
     }, {});

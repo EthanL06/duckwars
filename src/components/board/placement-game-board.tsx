@@ -6,9 +6,8 @@ import rubberDuckSound from "../../assets/sfx/rubber_duck.wav";
 import { cn, duckSoundSpriteMap } from "../../lib/utils";
 import PlacementCell from "./cells/placement-cell";
 import DragAndDrop from "./drag-and-drop";
-type Props = {};
 
-const PlacementGameBoard = (props: Props) => {
+const PlacementGameBoard = () => {
   const { board, state, playerID, isRotating } = useContext(GameContext);
 
   // The cell we are dragging over

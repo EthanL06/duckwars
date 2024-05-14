@@ -71,9 +71,9 @@ const Placement = () => {
           </span>
         </div>
         {/* <GameBoard /> */}
-        <Profiler id="profiler" onRender={() => {}}>
-          <PlacementGameBoard />
-        </Profiler>
+        {/* <Profiler id="profiler"> */}
+        <PlacementGameBoard />
+        {/* </Profiler> */}
       </div>
 
       <div className="mx-auto w-full max-w-[400px]">
