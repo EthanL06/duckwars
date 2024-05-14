@@ -10,8 +10,6 @@ import DragAndDrop from "./drag-and-drop";
 const PlacementGameBoard = () => {
   const { board, state, playerID, isRotating } = useContext(GameContext);
 
-  // The cell we are dragging over
-  const [draggedOverCell, setDraggedOverCell] = useState<Cell | null>(null);
   // The cell with the duck we are dragging
   const [selectedDraggingCell, setSelectedDraggingCell] = useState<Cell | null>(
     null,
@@ -50,8 +48,6 @@ const PlacementGameBoard = () => {
                 playSound={playDuckSound}
                 selectedDraggingCell={selectedDraggingCell}
                 setSelectedDraggingCell={setSelectedDraggingCell}
-                draggedOverCell={draggedOverCell}
-                setDraggedOverCell={setDraggedOverCell}
                 board={playerBoard}
                 isRotating={isRotating}
               />
@@ -61,7 +57,6 @@ const PlacementGameBoard = () => {
 
         <DragAndDrop
           boardRef={boardRef}
-          //   isDragging={isDragging}
           selectedDraggingCell={selectedDraggingCell}
         />
       </div>

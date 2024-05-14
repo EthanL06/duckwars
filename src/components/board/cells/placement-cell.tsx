@@ -21,12 +21,8 @@ type PlacementCellProps = {
   x: number;
   y: number;
   playSound: PlayFunction;
-  // setIsDragging: React.Dispatch<React.SetStateAction<boolean>>;
-  // isDragging: boolean;
   selectedDraggingCell: Cell | null;
   setSelectedDraggingCell: React.Dispatch<React.SetStateAction<Cell | null>>;
-  draggedOverCell: Cell | null;
-  setDraggedOverCell: React.Dispatch<React.SetStateAction<Cell | null>>;
   board: Board;
   isRotating: boolean;
 };
@@ -35,79 +31,73 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
   x,
   y,
   playSound,
-  // setIsDragging,
-  // isDragging,
   selectedDraggingCell,
   setSelectedDraggingCell,
-  draggedOverCell,
-  setDraggedOverCell,
   board,
   isRotating,
 }) => {
-  const prevProps = useRef({
-    x,
-    y,
-    playSound,
-    // setIsDragging,
-    // isDragging,
-    selectedDraggingCell,
-    setSelectedDraggingCell,
-    draggedOverCell,
-    setDraggedOverCell,
-    board,
-    isRotating,
-  });
+  // const prevProps = useRef({
+  //   x,
+  //   y,
+  //   playSound,
+  //   selectedDraggingCell,
+  //   setSelectedDraggingCell,
+  //   draggedOverCell,
+  //   setDraggedOverCell,
+  //   board,
+  //   isRotating,
+  // });
 
-  useEffect(() => {
-    const changedProps = Object.entries({
-      x,
-      y,
-      playSound,
-      // setIsDragging,
-      // isDragging,
-      selectedDraggingCell,
-      setSelectedDraggingCell,
-      draggedOverCell,
-      setDraggedOverCell,
-      board,
-      isRotating,
-    }).reduce((p: { [key: string]: any }, [k, v]) => {
-      if (prevProps.current[k as keyof typeof prevProps.current] !== v) {
-        p[k] = [prevProps.current[k as keyof typeof prevProps.current], v];
-      }
-      return p;
-    }, {});
+  // useEffect(() => {
+  //   const changedProps = Object.entries({
+  //     x,
+  //     y,
+  //     playSound,
+  //     // setIsDragging,
+  //     // isDragging,
+  //     selectedDraggingCell,
+  //     setSelectedDraggingCell,
+  //     draggedOverCell,
+  //     setDraggedOverCell,
+  //     board,
+  //     isRotating,
+  //   }).reduce((p: { [key: string]: any }, [k, v]) => {
+  //     if (prevProps.current[k as keyof typeof prevProps.current] !== v) {
+  //       p[k] = [prevProps.current[k as keyof typeof prevProps.current], v];
+  //     }
+  //     return p;
+  //   }, {});
 
-    if (Object.keys(changedProps).length > 0) {
-      console.log(x, y, "Changed props:", changedProps);
-    }
+  //   if (Object.keys(changedProps).length > 0) {
+  //     console.log(x, y, "Changed props:", changedProps);
+  //   }
 
-    prevProps.current = {
-      x,
-      y,
-      playSound,
-      // setIsDragging,
-      // isDragging,
-      selectedDraggingCell,
-      setSelectedDraggingCell,
-      draggedOverCell,
-      setDraggedOverCell,
-      board,
-      isRotating,
-    };
-  }, [
-    x,
-    y,
-    playSound,
-    // setIsDragging,
-    // isDragging,
-    selectedDraggingCell,
-    setSelectedDraggingCell,
-    draggedOverCell,
-    setDraggedOverCell,
-    board,
-    isRotating,
-  ]);
+  //   prevProps.current = {
+  //     x,
+  //     y,
+  //     playSound,
+  //     // setIsDragging,
+  //     // isDragging,
+  //     selectedDraggingCell,
+  //     setSelectedDraggingCell,
+  //     draggedOverCell,
+  //     setDraggedOverCell,
+  //     board,
+  //     isRotating,
+  //   };
+  // }, [
+  //   x,
+  //   y,
+  //   playSound,
+  //   // setIsDragging,
+  //   // isDragging,
+  //   selectedDraggingCell,
+  //   setSelectedDraggingCell,
+  //   draggedOverCell,
+  //   setDraggedOverCell,
+  //   board,
+  //   isRotating,
+  // ]);
 
   const selectDuckComponent = () => {
     const ship = board[x][y].ship;
@@ -145,28 +135,15 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
     );
   };
 
-  const isBeingDraggedOnto = () => {
-    if (!selectedDraggingCell || !selectedDraggingCell.ship || !draggedOverCell)
-      return false;
-
-    return (
-      draggedOverCell.x == x &&
-      draggedOverCell.y == y &&
-      isValidPosition(board, selectedDraggingCell.ship as Ship, board[x][y])
-    );
-  };
-
   const onDragStart = () => {
     if (!hasDuck() || isRotating) return;
 
     setSelectedDraggingCell(board[x][y]);
   };
 
-  const onDragMoveMobile = (e: React.TouchEvent) => {
-    if (isRotating) return;
+  const getCellFromDragMobile = (e: React.TouchEvent) => {
+    const touch = e.changedTouches[e.changedTouches.length - 1];
 
-    // Get what cell is being touched
-    const touch = e.touches[0];
     const x = touch.clientX;
     const y = touch.clientY;
 
@@ -185,13 +162,12 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
     // Get the cell
     const cell = board[Number(cellX)][Number(cellY)];
 
-    if (cell.x === x && cell.y === y) return;
-    setDraggedOverCell(cell);
+    if (cell.x === x && cell.y === y) return null;
+
+    return cell;
   };
 
-  const onDragMove = (e: React.DragEvent) => {
-    if (isRotating) return;
-
+  const getCellFromDrag = (e: React.DragEvent) => {
     const x = e.clientX;
     const y = e.clientY;
 
@@ -209,14 +185,48 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
 
     // Get the cell
     const cell = board[Number(cellX)][Number(cellY)];
-    setDraggedOverCell(cell);
+
+    if (cell.x === x && cell.y === y) return null;
+
+    return cell;
   };
 
-  const onDragEnd = () => {
-    if (!selectedDraggingCell || isRotating) return;
-
-    if (!selectedDraggingCell || !selectedDraggingCell.ship || !draggedOverCell)
+  const onDragEndMobile = (e: React.TouchEvent) => {
+    console.log("Drag end mobile");
+    if (
+      // !isDragging ||
+      !selectedDraggingCell ||
+      !selectedDraggingCell.ship ||
+      isRotating
+    )
       return;
+
+    setSelectedDraggingCell(null);
+
+    const draggedOverCell = getCellFromDragMobile(e);
+    console.log("Dragged over cell", draggedOverCell);
+
+    if (!draggedOverCell) return;
+
+    if (!isValidPosition(board, selectedDraggingCell.ship, draggedOverCell)) {
+      return;
+    }
+
+    moveShip(board, selectedDraggingCell.ship as Ship, draggedOverCell);
+    playSound({
+      id: "duck-1",
+    });
+  };
+
+  const onDragEnd = (e: React.DragEvent) => {
+    if (!selectedDraggingCell || !selectedDraggingCell.ship || isRotating)
+      return;
+
+    setSelectedDraggingCell(null);
+
+    const draggedOverCell = getCellFromDrag(e);
+
+    if (!draggedOverCell) return;
 
     if (!isValidPosition(board, selectedDraggingCell.ship, draggedOverCell)) {
       // const result = moveToOptimalPosition(
@@ -241,7 +251,6 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
     playSound({
       id: "duck-1",
     });
-    setSelectedDraggingCell(null);
   };
 
   const canRotate = () => {
@@ -276,10 +285,9 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
       }}
       draggable={true}
       onDragStart={onDragStart}
-      onDrag={onDragMove}
-      onDragEnd={() => {
+      onDragEnd={(e) => {
         if (!isRotating) {
-          onDragEnd();
+          onDragEnd(e);
           return;
         }
 
@@ -291,10 +299,9 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
         });
       }}
       onTouchStart={onDragStart}
-      onTouchMove={onDragMoveMobile}
-      onTouchEnd={() => {
+      onTouchEnd={(e) => {
         if (!isRotating) {
-          onDragEnd();
+          onDragEndMobile(e);
           return;
         }
 
@@ -310,7 +317,7 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
       className={cn(
         "aspect-square w-[10%] scale-100 rounded bg-cell transition-all hover:cursor-pointer disabled:cursor-default",
         isBeingDragged() && "animate-pulse bg-gray-300",
-        (isBeingDraggedOnto() || canRotate()) && "bg-green-300",
+        canRotate() && "bg-green-300",
       )}
     >
       <AnimatePresence mode="wait">

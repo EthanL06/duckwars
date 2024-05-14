@@ -1,17 +1,8 @@
-import PlacementCell from "./cells/placement-cell";
-import { cn, duckSoundSpriteMap, isValidPosition } from "../../lib/utils";
-import React, {
-  Profiler,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { cn } from "../../lib/utils";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { GameContext } from "../../context/GameContext";
 import GameCell from "./cells/game-cell";
-import { Cell } from "../../logic";
 import useSound from "use-sound";
-import rubberDuckSound from "../../assets/sfx/rubber_duck.wav";
 import selectSound from "../../assets/sfx/click.ogg";
 import Event from "../events/event";
 import Timer from "./timer";
@@ -20,22 +11,13 @@ import PlayerProfiles from "./player-profiles";
 import SpectatorCell from "./cells/spectator-cell";
 import { PlayerId } from "rune-games-sdk";
 import { EVENT_DURATION } from "../../lib/constants";
-import DragAndDrop from "./drag-and-drop";
-import { onRenderCallback } from "../../hooks/useProfiler";
 
 type GameBoardProps = {
   className?: string;
 };
 
 const GameBoard = ({ className }: GameBoardProps) => {
-  // The cell we are dragging over
-  // const [draggedOverCell, setDraggedOverCell] = useState<Cell | null>(null);
   const [showingEvent, setShowingEvent] = useState(true);
-  // const [isDragging, setIsDragging] = useState(false);
-  // The cell with the duck we are dragging
-  // const [selectedDraggingCell, setSelectedDraggingCell] = useState<Cell | null>(
-  //   null,
-  // );
   const [isTimerShown, setIsTimerShown] = useState(false);
 
   const { board, state, playerID, setSelectedCell } = useContext(GameContext);
@@ -45,9 +27,6 @@ const GameBoard = ({ className }: GameBoardProps) => {
       intervalMs: 1000,
     });
 
-  const [playDuckSound] = useSound(rubberDuckSound, {
-    sprite: duckSoundSpriteMap,
-  });
   const [playSelectSound] = useSound(selectSound);
 
   const boardRef = useRef<HTMLDivElement>(null);
@@ -91,53 +70,6 @@ const GameBoard = ({ className }: GameBoardProps) => {
     console.log(board);
   }, [board]);
 
-  // useEffect(() => {
-  //   if (!selectedDraggingCell || !draggedOverCell) {
-  //     return;
-  //   }
-
-  //   console.log(selectedDraggingCell);
-  //   console.log("Dragged over cell", draggedOverCell);
-
-  //   if (selectedDraggingCell.ship) {
-  //     console.log(
-  //       "isValid:",
-  //       isValidPosition(board, selectedDraggingCell.ship, draggedOverCell),
-  //     );
-  //   }
-  // }, [selectedDraggingCell, draggedOverCell, board]);
-
-  // const renderCell = (x: number, y: number) => {
-  //   switch (state.phase) {
-  //     case "placement":
-  //       return (
-  //         <PlacementCell
-  //           x={x}
-  //           y={y}
-  //           playSound={playDuckSound}
-  //           setIsDragging={setIsDragging}
-  //           isDragging={isDragging}
-  //           selectedDraggingCell={selectedDraggingCell}
-  //           setSelectedDraggingCell={setSelectedDraggingCell}
-  //           draggedOverCell={draggedOverCell}
-  //           setDraggedOverCell={setDraggedOverCell}
-  //         />
-  //       );
-  //     case "game":
-  //       return (
-  //         <GameCell
-  //           x={x}
-  //           y={y}
-  //           playTargetSound={playSelectSound}
-  //           onBombCell={() => {
-  //             stopCountdown();
-  //             resetCountdown();
-  //           }}
-  //         />
-  //       );
-  //   }
-  // };
-
   if (board === undefined || !showingEvent) {
     return (
       <div className={className}>
@@ -145,8 +77,6 @@ const GameBoard = ({ className }: GameBoardProps) => {
       </div>
     );
   }
-
-  // if the board is not fully loaded, show a loading spinner
 
   return (
     <div className={cn(className)}>
@@ -190,11 +120,6 @@ const GameBoard = ({ className }: GameBoardProps) => {
         ))}
 
         <Event shown={showingEvent} setShown={setShowingEvent} />
-        {/* 
-        <DragAndDrop
-          selectedDraggingCell={selectedDraggingCell}
-          boardRef={boardRef}
-        /> */}
       </div>
     </div>
   );

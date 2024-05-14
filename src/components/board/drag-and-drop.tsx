@@ -48,8 +48,7 @@ const DragAndDrop = ({ selectedDraggingCell, boardRef }: Props) => {
     return null;
   }
 
-  const { count, orientation, startingPosition, type } =
-    selectedDraggingCell.ship;
+  const { count, orientation, type } = selectedDraggingCell.ship;
 
   const duckImages = {
     default: Default,
