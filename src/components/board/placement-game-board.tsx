@@ -1,9 +1,14 @@
 import React, { useContext, useRef, useState } from "react";
-import { Cell } from "../../logic";
+import { Board, Cell, Position, Ship } from "../../logic";
 import { GameContext } from "../../context/GameContext";
 import useSound from "use-sound";
 import rubberDuckSound from "../../assets/sfx/rubber_duck.wav";
-import { cn, duckSoundSpriteMap } from "../../lib/utils";
+import {
+  cn,
+  duckSoundSpriteMap,
+  isValidPosition,
+  isValidRotation,
+} from "../../lib/utils";
 import PlacementCell from "./cells/placement-cell";
 import DragAndDrop from "./drag-and-drop";
 
@@ -14,10 +19,6 @@ const PlacementGameBoard = () => {
   const [selectedDraggingCell, setSelectedDraggingCell] = useState<Cell | null>(
     null,
   );
-
-  const [playDuckSound] = useSound(rubberDuckSound, {
-    sprite: duckSoundSpriteMap,
-  });
 
   const boardRef = useRef<HTMLDivElement>(null);
 
@@ -40,7 +41,7 @@ const PlacementGameBoard = () => {
             key={x}
             className=" flex w-full gap-[1px] min-[200px]:gap-0.5 min-[250px]:gap-1"
           >
-            {row.map((cell, y) => (
+            {/* {row.map((cell, y) => (
               <PlacementCell
                 key={`${x}-${y}`}
                 x={x}
@@ -51,7 +52,16 @@ const PlacementGameBoard = () => {
                 board={playerBoard}
                 isRotating={isRotating}
               />
-            ))}
+            ))} */}
+
+            <PlacementRow
+              row={row}
+              rowIndex={x}
+              board={playerBoard}
+              selectedDraggingCell={selectedDraggingCell}
+              setSelectedDraggingCell={setSelectedDraggingCell}
+              isRotating={isRotating}
+            />
           </div>
         ))}
 
@@ -60,6 +70,59 @@ const PlacementGameBoard = () => {
           selectedDraggingCell={selectedDraggingCell}
         />
       </div>
+    </div>
+  );
+};
+
+const PlacementRow = ({
+  row,
+  rowIndex,
+  board,
+  selectedDraggingCell,
+  setSelectedDraggingCell,
+  isRotating,
+}: {
+  row: Cell[];
+  rowIndex: number;
+  board: Board;
+  selectedDraggingCell: Cell | null;
+  setSelectedDraggingCell: React.Dispatch<React.SetStateAction<Cell | null>>;
+  isRotating: boolean;
+}) => {
+  const [playDuckSound] = useSound(rubberDuckSound, {
+    sprite: duckSoundSpriteMap,
+  });
+
+  return (
+    <div
+      key={rowIndex}
+      className=" flex w-full gap-[1px] min-[200px]:gap-0.5 min-[250px]:gap-1"
+    >
+      {row.map(
+        (cell, y) =>
+          cell !== undefined && (
+            <PlacementCell
+              key={`${rowIndex}-${y}`}
+              x={rowIndex}
+              y={y}
+              playSound={playDuckSound}
+              board={board}
+              selectedDraggingCell={selectedDraggingCell}
+              setSelectedDraggingCell={setSelectedDraggingCell}
+              isRotating={isRotating}
+              cell={cell}
+              isValidRotate={(ship: Ship, currentPosition: Position) => {
+                return isValidRotation(board, ship, currentPosition);
+              }}
+              isValidPosition={(ship: Ship, newPosition: Position) => {
+                return isValidPosition(board, ship, newPosition);
+              }}
+              getCell={(x: number, y: number) => {
+                return board[x][y];
+              }}
+            />
+          ),
+      )}
     </div>
   );
 };
