@@ -19,6 +19,7 @@ type GameBoardProps = {
 const GameBoard = ({ className }: GameBoardProps) => {
   const [showingEvent, setShowingEvent] = useState(true);
   const [isTimerShown, setIsTimerShown] = useState(false);
+  const [isBombing, setIsBombing] = useState(false);
 
   const { board, state, playerID, setSelectedCell } = useContext(GameContext);
   const [count, { startCountdown, stopCountdown, resetCountdown }] =
@@ -113,6 +114,8 @@ const GameBoard = ({ className }: GameBoardProps) => {
                     stopCountdown();
                     resetCountdown();
                   }}
+                  isBombing={isBombing}
+                  setIsBombing={setIsBombing}
                 />
               </React.Fragment>
             ))}

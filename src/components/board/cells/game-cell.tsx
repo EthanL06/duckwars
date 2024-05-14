@@ -19,21 +19,32 @@ type GameCellProps = {
   y: number;
   playTargetSound: PlayFunction;
   onBombCell: (cell: Cell) => void;
+  isBombing: boolean;
+  setIsBombing: (isBombing: boolean) => void;
 };
 
-const GameCell = ({ x, y, playTargetSound, onBombCell }: GameCellProps) => {
+const GameCell = ({
+  x,
+  y,
+  playTargetSound,
+  onBombCell,
+  isBombing,
+  setIsBombing,
+}: GameCellProps) => {
   const { board, selectedCell, setSelectedCell, state, playerID } =
     useContext(GameContext);
   const [showCellImage, setShowCellImage] = useState(true);
 
   const bombCell = (cell: Cell) => {
-    if (isCellSelected()) {
+    if (isCellSelected() && state.lastEvent == null && !isBombing) {
       setShowCellImage(false);
       Rune.actions.bombCell(cell);
       onBombCell(cell);
+      setIsBombing(true);
 
-      setSelectedCell(null);
       setTimeout(() => {
+        setSelectedCell(null);
+        setIsBombing(false);
         setShowCellImage(true);
         Rune.actions.nextTurn();
       }, EVENT_DURATION);
@@ -46,7 +57,8 @@ const GameCell = ({ x, y, playTargetSound, onBombCell }: GameCellProps) => {
   };
 
   const onCellClick = () => {
-    if (state.winner || state.turn != playerID) return;
+    if (state.winner || state.turn != playerID || state.lastEvent != null)
+      return;
 
     const opponentsBoard =
       state.boards[state.playerIds.find((id) => id !== playerID) as PlayerId];
