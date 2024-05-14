@@ -67,10 +67,6 @@ const GameBoard = ({ className }: GameBoardProps) => {
     }
   }, [count, resetCountdown, setSelectedCell, stopCountdown]);
 
-  useEffect(() => {
-    console.log(board);
-  }, [board]);
-
   if (board === undefined || !showingEvent) {
     return (
       <div className={className}>
@@ -147,7 +143,7 @@ const GameHeader = () => {
 };
 
 const SpectatorView = () => {
-  const [playerViewId, setPlayerViewId] = useState<PlayerId>(null);
+  const [playerViewId, setPlayerViewId] = useState<PlayerId | null>(null);
 
   const { state } = useContext(GameContext);
 
@@ -158,6 +154,8 @@ const SpectatorView = () => {
   useEffect(() => {
     setPlayerViewId(state.playerIds[0]);
   }, [state.playerIds]);
+
+  if (playerViewId == null) return null;
 
   return (
     <div>

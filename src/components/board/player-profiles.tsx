@@ -9,7 +9,7 @@ const PlayerProfiles = ({
   onSpectatorClick,
 }: {
   className?: string;
-  onSpectatorClick?: MouseEventHandler;
+  onSpectatorClick?: (playerId: string) => void;
 }) => {
   const { state, playerID } = useContext(GameContext);
   const [play] = useSound(joinSound);

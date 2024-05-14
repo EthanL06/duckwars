@@ -57,14 +57,20 @@ const GameCell = ({
   };
 
   const onCellClick = () => {
-    if (state.winner || state.turn != playerID || state.lastEvent != null)
+    if (
+      state.winner ||
+      state.turn != playerID ||
+      state.lastEvent != null ||
+      isBombing
+    )
       return;
+
+    console.log("clicked!");
 
     const opponentsBoard =
       state.boards[state.playerIds.find((id) => id !== playerID) as PlayerId];
 
-    if (state.turn !== playerID || opponentsBoard[x][y].state != undefined)
-      return;
+    if (opponentsBoard[x][y].state != undefined) return;
 
     playTargetSound();
     setSelectedCell(board[x][y]);

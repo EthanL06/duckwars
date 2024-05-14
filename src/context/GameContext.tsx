@@ -67,7 +67,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   }, [gamePhase]);
 
   useEffect(() => {
-    if (game.lastEvent != null && game.turn === playerID) {
+    if (game.lastEvent != null) {
       if (game.winner && game.phase === "game") {
         Rune.showGameOverPopUp();
         return;
@@ -77,7 +77,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         Rune.actions.clearLastEvent();
       }, EVENT_DURATION);
     }
-  }, [game, playerID]);
+  }, [game.lastEvent, game.winner, game.phase, playerID]);
 
   return (
     <GameContext.Provider
