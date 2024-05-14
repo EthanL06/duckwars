@@ -90,11 +90,25 @@ export const moveShip = (board: Board, ship: Ship, newCell: Cell) => {
 const toggleOrientation = (orientation: string) =>
   orientation === "vertical" ? "horizontal" : "vertical";
 
+export const isValidRotation = (
+  board: Board,
+  ship: Ship,
+  currentPosition: Position,
+) => {
+  const newOrientation = toggleOrientation(ship.orientation) as
+    | "horizontal"
+    | "vertical";
+
+  const newShip = { ...ship, orientation: newOrientation };
+
+  return isValidPosition(board, newShip, currentPosition);
+};
+
 export const rotateShip = (board: Board, selectedCell: Cell) => {
   const ship = selectedCell.ship;
 
   if (!ship) {
-    return;
+    return false;
   }
 
   const newOrientation = toggleOrientation(ship.orientation) as
@@ -106,11 +120,63 @@ export const rotateShip = (board: Board, selectedCell: Cell) => {
   const isValid = isValidPosition(board, newShip, ship.startingPosition);
 
   if (!isValid) {
-    return;
+    return false;
   }
 
   moveShip(board, newShip, ship.startingPosition);
+  return true;
 };
+
+// For future update
+// Say the player moves to an invalid spot, use this function to attempt it to the nearest valid spot with respect to their orientation
+// export const moveToOptimalPosition = (
+//   board: Board,
+//   position: Position,
+//   ship: Ship,
+// ) => {
+//   const { x, y } = position;
+//   const { orientation, count } = ship;
+//   const boardSize = 10;
+
+//   // If the ship is on the edges of the board
+//   if (
+//     x >= count - 1 &&
+//     x <= boardSize - count - 1 &&
+//     y >= count - 1 &&
+//     y <= boardSize - count - 1
+//   ) {
+//     return false;
+//   }
+
+//   const isCellOccupied = (x: number, y: number) => {
+//     return board[x][y].ship !== undefined;
+//   };
+
+//   const isCellValid = (x: number, y: number) => {
+//     return !isCellOccupied(x, y);
+//   };
+
+//   if (orientation == "horizontal") {
+//     if (y > boardSize - count) return false;
+//     for (let i = 1; i <= count; i++) {
+//       if (!isCellValid(x, count - i)) {
+//         return false;
+//       }
+//     }
+
+//     moveShip(board, ship, { x, y: count - 1 });
+//     return true;
+//   } else {
+//     for (let i = 1; i <= count; i++) {
+//       if (!isCellValid(count - i, y)) {
+//         return false;
+//       }
+//     }
+
+//     moveShip(board, ship, { x: count - 1, y });
+//     return true;
+//   }
+// };
 
 export const duckSoundSpriteMap: { [key: string]: [number, number] } = {
   "duck-1": [200, 500],

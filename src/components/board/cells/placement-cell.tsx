@@ -1,43 +1,103 @@
-import React, { useContext } from "react";
+import React, { useEffect, useRef } from "react";
 
 import Default from "../../ducks/default";
 import Scarf from "../../ducks/scarf";
 import Hat from "../../ducks/hat";
 import Pirate from "../../ducks/pirate";
-import { cn, isValidPosition, moveShip, rotateShip } from "../../../lib/utils";
-import { GameContext } from "../../../context/GameContext";
-import { Cell, Ship } from "../../../logic";
+import {
+  cn,
+  isValidPosition,
+  isValidRotation,
+  moveShip,
+  rotateShip,
+} from "../../../lib/utils";
+import { Board, Cell, Ship } from "../../../logic";
 import { PlayFunction } from "use-sound";
 import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
+import { isMobile } from "react-device-detect";
 
 type PlacementCellProps = {
   x: number;
   y: number;
-  isSelected: boolean;
-  setSelectedCells: React.Dispatch<React.SetStateAction<Cell[]>>;
-  selectedShip: Ship | null;
-  isMoving: boolean;
-  setIsMoving: React.Dispatch<React.SetStateAction<boolean>>;
-  setClickedCell: React.Dispatch<React.SetStateAction<Cell | null>>;
-  clickedCell: Cell | null;
   playSound: PlayFunction;
+  selectedDraggingCell: Cell | null;
+  setSelectedDraggingCell: React.Dispatch<React.SetStateAction<Cell | null>>;
+  board: Board;
+  isRotating: boolean;
 };
 
 const PlacementCell: React.FC<PlacementCellProps> = ({
   x,
   y,
-  isSelected,
-  setSelectedCells,
-  selectedShip,
-  isMoving,
-  setIsMoving,
-  setClickedCell,
-  clickedCell,
   playSound,
+  selectedDraggingCell,
+  setSelectedDraggingCell,
+  board,
+  isRotating,
 }) => {
-  const { state, playerID } = useContext(GameContext);
-  const board = state.boards[playerID];
+  // const prevProps = useRef({
+  //   x,
+  //   y,
+  //   playSound,
+  //   selectedDraggingCell,
+  //   setSelectedDraggingCell,
+  //   draggedOverCell,
+  //   setDraggedOverCell,
+  //   board,
+  //   isRotating,
+  // });
+
+  // useEffect(() => {
+  //   const changedProps = Object.entries({
+  //     x,
+  //     y,
+  //     playSound,
+  //     // setIsDragging,
+  //     // isDragging,
+  //     selectedDraggingCell,
+  //     setSelectedDraggingCell,
+  //     draggedOverCell,
+  //     setDraggedOverCell,
+  //     board,
+  //     isRotating,
+  //   }).reduce((p: { [key: string]: any }, [k, v]) => {
+  //     if (prevProps.current[k as keyof typeof prevProps.current] !== v) {
+  //       p[k] = [prevProps.current[k as keyof typeof prevProps.current], v];
+  //     }
+  //     return p;
+  //   }, {});
+
+  //   if (Object.keys(changedProps).length > 0) {
+  //     console.log(x, y, "Changed props:", changedProps);
+  //   }
+
+  //   prevProps.current = {
+  //     x,
+  //     y,
+  //     playSound,
+  //     // setIsDragging,
+  //     // isDragging,
+  //     selectedDraggingCell,
+  //     setSelectedDraggingCell,
+  //     draggedOverCell,
+  //     setDraggedOverCell,
+  //     board,
+  //     isRotating,
+  //   };
+  // }, [
+  //   x,
+  //   y,
+  //   playSound,
+  //   // setIsDragging,
+  //   // isDragging,
+  //   selectedDraggingCell,
+  //   setSelectedDraggingCell,
+  //   draggedOverCell,
+  //   setDraggedOverCell,
+  //   board,
+  //   isRotating,
+  // ]);
 
   const selectDuckComponent = () => {
     const ship = board[x][y].ship;
@@ -69,95 +129,202 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
     return board[x][y].ship != undefined;
   };
 
-  const highlightShip = () => {
-    const ship = board[x][y].ship;
+  const isBeingDragged = () => {
+    return (
+      selectedDraggingCell && selectedDraggingCell?.ship == board[x][y].ship
+    );
+  };
 
-    const cellsWithShip = [] as Cell[];
+  const onDragStart = () => {
+    if (!hasDuck() || isRotating) return;
 
-    board.forEach((row) => {
-      row.forEach((cell) => {
-        if (cell.ship?.type === ship?.type) {
-          cellsWithShip.push(cell);
-        }
-      });
+    setSelectedDraggingCell(board[x][y]);
+  };
+
+  const getCellFromDragMobile = (e: React.TouchEvent) => {
+    const touch = e.changedTouches[e.changedTouches.length - 1];
+
+    const x = touch.clientX;
+    const y = touch.clientY;
+
+    // Get the element that is being touched
+    const elements = document.elementsFromPoint(x, y);
+    const element = elements.filter(
+      (element) => element.getAttribute("data-cell") === "true",
+    )[0];
+
+    if (!element) return;
+
+    // Get the x and y of the element
+    const cellX = element.getAttribute("data-x") as string;
+    const cellY = element.getAttribute("data-y") as string;
+
+    // Get the cell
+    const cell = board[Number(cellX)][Number(cellY)];
+
+    if (cell.x === x && cell.y === y) return null;
+
+    return cell;
+  };
+
+  const getCellFromDrag = (e: React.DragEvent) => {
+    const x = e.clientX;
+    const y = e.clientY;
+
+    // Get the element that is being touched
+    const elements = document.elementsFromPoint(x, y);
+    const element = elements.filter(
+      (element) => element.getAttribute("data-cell") === "true",
+    )[0];
+
+    if (!element) return;
+
+    // Get the x and y of the element
+    const cellX = element.getAttribute("data-x") as string;
+    const cellY = element.getAttribute("data-y") as string;
+
+    // Get the cell
+    const cell = board[Number(cellX)][Number(cellY)];
+    
+    if (cell.x === x && cell.y === y) return null;
+
+    return cell;
+  };
+
+  const onDragEndMobile = (e: React.TouchEvent) => {
+    console.log("Drag end mobile");
+    if (
+      // !isDragging ||
+      !selectedDraggingCell ||
+      !selectedDraggingCell.ship ||
+      isRotating
+    )
+      return;
+
+    setSelectedDraggingCell(null);
+
+    const draggedOverCell = getCellFromDragMobile(e);
+    console.log("Dragged over cell", draggedOverCell);
+
+    if (!draggedOverCell) return;
+
+    if (!isValidPosition(board, selectedDraggingCell.ship, draggedOverCell)) {
+      return;
+    }
+
+    moveShip(board, selectedDraggingCell.ship as Ship, draggedOverCell);
+    playSound({
+      id: "duck-1",
     });
-
-    setClickedCell(board[x][y]);
-    setSelectedCells(cellsWithShip);
   };
 
-  const onCellClick = () => {
-    const canMoveShipToCell = () => {
-      return (
-        isMoving &&
-        selectedShip &&
-        (board[x][y].ship == undefined ||
-          board[x][y].ship?.type == selectedShip?.type) &&
-        isValidCellToMoveTo()
-      );
-    };
+  const onDragEnd = (e: React.DragEvent) => {
+    if (!selectedDraggingCell || !selectedDraggingCell.ship || isRotating)
+      return;
 
-    // To rotate ship
-    if (isMoving && clickedCell?.x === x && clickedCell?.y === y) {
-      rotateShip(board, clickedCell);
-      playSound({
-        id: "duck-2",
-      });
-      setIsMoving(false);
-      setSelectedCells([]);
-      setClickedCell(null);
+    setSelectedDraggingCell(null);
+
+    const draggedOverCell = getCellFromDrag(e);
+
+    if (!draggedOverCell) return;
+
+    if (!isValidPosition(board, selectedDraggingCell.ship, draggedOverCell)) {
+      // const result = moveToOptimalPosition(
+      //   board,
+      //   {
+      //     x: draggedOverCell.x,
+      //     y: draggedOverCell.y,
+      //   },
+      //   selectedDraggingCell.ship,
+      // );
+      // if (result) {
+      //   playSound({
+      //     id: "duck-1",
+      //   });
+      //   setSelectedDraggingCell(null);
+      // }
+
       return;
     }
 
-    // To move ship
-    if (canMoveShipToCell()) {
-      moveShip(board, selectedShip as Ship, board[x][y]);
-      playSound({
-        id: "duck-1",
-      });
-      setIsMoving(false);
-      setSelectedCells([]);
-      setClickedCell(null);
-      return;
-    }
-
-    const cellHasDuck = hasDuck();
-    if (!cellHasDuck) return;
-
-    highlightShip();
-    setIsMoving(true);
+    moveShip(board, selectedDraggingCell.ship as Ship, draggedOverCell);
+    playSound({
+      id: "duck-1",
+    });
   };
 
-  const isValidCellToMoveTo = () => {
-    if (!isMoving || !selectedShip) return false;
-    return isValidPosition(board, selectedShip, { x, y });
-  };
+  const canRotate = () => {
+    const ship = board[x][y].ship;
+    if (!ship) return false;
 
-  const isMovingClasses = () => {
-    if (isValidCellToMoveTo() && !isSelected) {
-      return "hover:cursor-pointer bg-green-300";
-    } else if (!hasDuck()) {
-      return "hover:cursor-not-allowed";
-    }
+    const startingPosition = ship.startingPosition;
 
-    return "";
+    return (
+      isRotating &&
+      board[x][y].ship &&
+      isValidRotation(board, board[x][y].ship as Ship, {
+        x: startingPosition.x,
+        y: startingPosition.y,
+      })
+    );
   };
 
   return (
     <div
+      data-cell="true"
+      data-x={x}
+      data-y={y}
       tabIndex={-1}
-      onClick={onCellClick}
+      onClick={() => {
+        if (isRotating && !isMobile) {
+          rotateShip(board, board[x][y]);
+          playSound({
+            id: "duck-2",
+          });
+        }
+      }}
+      draggable={true}
+      onDragStart={onDragStart}
+      onDragEnd={(e) => {
+        if (!isRotating) {
+          onDragEnd(e);
+          return;
+        }
+
+        if (!hasDuck()) return;
+
+        rotateShip(board, board[x][y]);
+        playSound({
+          id: "duck-2",
+        });
+      }}
+      onTouchStart={onDragStart}
+      onTouchEnd={(e) => {
+        if (!isRotating) {
+          onDragEndMobile(e);
+          return;
+        }
+
+        if (!hasDuck() || !isMobile) return;
+
+        const rotated = rotateShip(board, board[x][y]);
+        if (rotated) {
+          playSound({
+            id: "duck-2",
+          });
+        }
+      }}
       className={cn(
         "aspect-square w-[10%] scale-100 rounded bg-cell transition-all hover:cursor-pointer disabled:cursor-default",
-        isSelected && "animate-pulse bg-gray-300",
-        isMoving && isMovingClasses(),
+        isBeingDragged() && "animate-pulse bg-gray-300",
+        canRotate() && "bg-green-300",
       )}
     >
       <AnimatePresence mode="wait">
         {hasDuck() && (
           <motion.div
             initial={{ scale: 0.5 }}
-            animate={isSelected ? "scaleUp" : "animateIn"}
+            animate={"animateIn"}
             exit={{ scale: 0 }}
             variants={{
               scaleUp: {

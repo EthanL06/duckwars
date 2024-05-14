@@ -1,11 +1,8 @@
-import PlacementCell from "./cells/placement-cell";
-import { cn, duckSoundSpriteMap } from "../../lib/utils";
-import React, { useContext, useEffect, useState } from "react";
+import { cn } from "../../lib/utils";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { GameContext } from "../../context/GameContext";
 import GameCell from "./cells/game-cell";
-import { Cell } from "../../logic";
 import useSound from "use-sound";
-import rubberDuckSound from "../../assets/sfx/rubber_duck.wav";
 import selectSound from "../../assets/sfx/click.ogg";
 import Event from "../events/event";
 import Timer from "./timer";
@@ -20,21 +17,19 @@ type GameBoardProps = {
 };
 
 const GameBoard = ({ className }: GameBoardProps) => {
-  const { board, state, playerID, setSelectedCell } = useContext(GameContext);
-  const [clickedCell, setClickedCell] = useState<Cell | null>(null);
-  const [selectedCells, setSelectedCells] = useState<Cell[]>([]);
-  const [isMoving, setIsMoving] = useState(false);
-  const [playDuckSound] = useSound(rubberDuckSound, {
-    sprite: duckSoundSpriteMap,
-  });
-  const [playSelectSound] = useSound(selectSound);
+  const [showingEvent, setShowingEvent] = useState(true);
   const [isTimerShown, setIsTimerShown] = useState(false);
+
+  const { board, state, playerID, setSelectedCell } = useContext(GameContext);
   const [count, { startCountdown, stopCountdown, resetCountdown }] =
     useCountdown({
       countStart: 25,
       intervalMs: 1000,
     });
-  const [showingEvent, setShowingEvent] = useState(true);
+
+  const [playSelectSound] = useSound(selectSound);
+
+  const boardRef = useRef<HTMLDivElement>(null);
 
   useClickAnyWhere(() => {
     if (state.phase === "game" && state.turn === playerID) {
@@ -71,40 +66,10 @@ const GameBoard = ({ className }: GameBoardProps) => {
     }
   }, [count, resetCountdown, setSelectedCell, stopCountdown]);
 
-  const renderCell = (x: number, y: number) => {
-    switch (state.phase) {
-      case "placement":
-        return (
-          <PlacementCell
-            x={x}
-            y={y}
-            isSelected={selectedCells.some(
-              (cell) => cell.x === x && cell.y === y,
-            )}
-            setSelectedCells={setSelectedCells}
-            selectedShip={selectedCells[0]?.ship || null}
-            setIsMoving={setIsMoving}
-            isMoving={isMoving}
-            setClickedCell={setClickedCell}
-            clickedCell={clickedCell}
-            playSound={playDuckSound}
-          />
-        );
-      case "game":
-        return (
-          <GameCell
-            x={x}
-            y={y}
-            playTargetSound={playSelectSound}
-            onBombCell={() => {
-              stopCountdown();
-              resetCountdown();
-            }}
-          />
-        );
-    }
-  };
-
+  useEffect(() => {
+    console.log(board);
+  }, [board]);
+  
   if (board === undefined || !showingEvent) {
     return (
       <div className={className}>
@@ -114,7 +79,7 @@ const GameBoard = ({ className }: GameBoardProps) => {
   }
 
   return (
-    <div className={className}>
+    <div className={cn(className)}>
       {state.phase === "game" && (
         <>
           <Timer
@@ -128,6 +93,7 @@ const GameBoard = ({ className }: GameBoardProps) => {
       )}
 
       <div
+        ref={boardRef}
         className={cn(
           "relative mx-auto mt-5 flex w-full max-w-[400px] flex-col items-center justify-center space-y-[1px] min-[200px]:space-y-0.5 min-[250px]:space-y-1",
         )}
@@ -139,7 +105,15 @@ const GameBoard = ({ className }: GameBoardProps) => {
           >
             {row.map((cell, j) => (
               <React.Fragment key={`${i}-${j}`}>
-                {renderCell(i, j)}
+                <GameCell
+                  x={i}
+                  y={j}
+                  playTargetSound={playSelectSound}
+                  onBombCell={() => {
+                    stopCountdown();
+                    resetCountdown();
+                  }}
+                />
               </React.Fragment>
             ))}
           </div>

@@ -1,5 +1,4 @@
-import { useContext, useEffect, useState } from "react";
-
+import { useContext, useState } from "react";
 import Default from "../../ducks/default";
 import Scarf from "../../ducks/scarf";
 import Hat from "../../ducks/hat";
@@ -176,7 +175,11 @@ const GameCell = ({ x, y, playTargetSound, onBombCell }: GameCellProps) => {
           isCellSelected() && "animate-pulse",
         )}
       >
-        {showCellImage && selectCellImage()}
+        {showCellImage ? (
+          selectCellImage()
+        ) : (
+          <img className="scale-up-down size-full" src={Target} alt="target" />
+        )}
       </div>
     </div>
   );

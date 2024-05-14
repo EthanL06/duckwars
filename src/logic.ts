@@ -212,8 +212,6 @@ Rune.initLogic({
 
     updateBoard: (board, { game, playerId }) => {
       game.boards[playerId] = board;
-
-      console.log("Player", playerId, "updated board", board);
     },
 
     nextTurn: (_, { game }) => {
