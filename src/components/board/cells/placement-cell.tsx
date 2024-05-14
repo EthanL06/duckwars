@@ -185,7 +185,7 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
 
     // Get the cell
     const cell = board[Number(cellX)][Number(cellY)];
-
+    
     if (cell.x === x && cell.y === y) return null;
 
     return cell;
