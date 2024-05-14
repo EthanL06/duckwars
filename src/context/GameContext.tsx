@@ -55,8 +55,6 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     Rune.initClient({
       onChange: ({ game, yourPlayerId }) => {
-        console.log("Game updated: ", game);
-
         setPlayerID(yourPlayerId as PlayerId);
         setGame(game);
         setBoard(game.boards[yourPlayerId as PlayerId]);
@@ -77,7 +75,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         }
       },
     });
-  }, []);
+  }, [gamePhase]);
 
   return (
     <GameContext.Provider

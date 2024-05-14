@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { Profiler, useContext } from "react";
 import Button from "../components/buttons/button";
 import GameBoard from "../components/board/game-board";
 import { motion } from "framer-motion";
@@ -8,6 +8,8 @@ import Default from "../assets/ducks/duck.svg";
 import useSound from "use-sound";
 import rubberDuckSound from "../assets/sfx/rubber_duck.wav";
 import { cn, duckSoundSpriteMap } from "../lib/utils";
+import PlacementGameBoard from "../components/board/placement-game-board";
+import { onRenderCallback } from "../hooks/useProfiler";
 
 const Placement = () => {
   const { state, playerID, setIsRotating, isRotating } =
@@ -51,9 +53,9 @@ const Placement = () => {
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               className={cn(
                 "transition-all",
                 isRotating ? "stroke-white" : "stroke-gray-400",
@@ -68,7 +70,10 @@ const Placement = () => {
             {isRotating ? "Disable" : "Enable"} rotation
           </span>
         </div>
-        <GameBoard />
+        {/* <GameBoard /> */}
+        <Profiler id="profiler" onRender={() => {}}>
+          <PlacementGameBoard />
+        </Profiler>
       </div>
 
       <div className="mx-auto w-full max-w-[400px]">

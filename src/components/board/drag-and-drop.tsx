@@ -8,12 +8,12 @@ import Pirate from "../ducks/pirate";
 import { cn } from "../../lib/utils";
 
 type Props = {
-  isDragging: boolean;
+  // isDragging: boolean;
   selectedDraggingCell: Cell | null;
   boardRef: React.RefObject<HTMLDivElement>;
 };
 
-const DragAndDrop = ({ isDragging, selectedDraggingCell, boardRef }: Props) => {
+const DragAndDrop = ({ selectedDraggingCell, boardRef }: Props) => {
   const [touches, { onTouchStart, onTouchEnd }] = useTouch();
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
@@ -40,7 +40,6 @@ const DragAndDrop = ({ isDragging, selectedDraggingCell, boardRef }: Props) => {
   }, [touches, boardRef]);
 
   if (
-    !isDragging ||
     !selectedDraggingCell ||
     !selectedDraggingCell.ship ||
     !touches ||
@@ -58,12 +57,6 @@ const DragAndDrop = ({ isDragging, selectedDraggingCell, boardRef }: Props) => {
     hat: Hat,
     pirate: Pirate,
   };
-
-  const startingCell = document.querySelector(
-    `[data-x="${startingPosition.x}"][data-y="${startingPosition.y}"]`,
-  );
-
-  console.log("STARTING: ", startingCell);
 
   return (
     <div

@@ -1,6 +1,12 @@
 import PlacementCell from "./cells/placement-cell";
 import { cn, duckSoundSpriteMap, isValidPosition } from "../../lib/utils";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+  Profiler,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { GameContext } from "../../context/GameContext";
 import GameCell from "./cells/game-cell";
 import { Cell } from "../../logic";
@@ -15,32 +21,36 @@ import SpectatorCell from "./cells/spectator-cell";
 import { PlayerId } from "rune-games-sdk";
 import { EVENT_DURATION } from "../../lib/constants";
 import DragAndDrop from "./drag-and-drop";
+import { onRenderCallback } from "../../hooks/useProfiler";
 
 type GameBoardProps = {
   className?: string;
 };
 
 const GameBoard = ({ className }: GameBoardProps) => {
-  const { board, state, playerID, setSelectedCell } = useContext(GameContext);
-  const [playDuckSound] = useSound(rubberDuckSound, {
-    sprite: duckSoundSpriteMap,
-  });
-  const [playSelectSound] = useSound(selectSound);
-  const [isTimerShown, setIsTimerShown] = useState(false);
-  const [count, { startCountdown, stopCountdown, resetCountdown }] =
-    useCountdown({
-      countStart: 25,
-      intervalMs: 1000,
-    });
+  // The cell we are dragging over
+  const [draggedOverCell, setDraggedOverCell] = useState<Cell | null>(null);
   const [showingEvent, setShowingEvent] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   // The cell with the duck we are dragging
   const [selectedDraggingCell, setSelectedDraggingCell] = useState<Cell | null>(
     null,
   );
+  const [isTimerShown, setIsTimerShown] = useState(false);
+
+  const { board, state, playerID, setSelectedCell } = useContext(GameContext);
+  const [count, { startCountdown, stopCountdown, resetCountdown }] =
+    useCountdown({
+      countStart: 25,
+      intervalMs: 1000,
+    });
+
+  const [playDuckSound] = useSound(rubberDuckSound, {
+    sprite: duckSoundSpriteMap,
+  });
+  const [playSelectSound] = useSound(selectSound);
+
   const boardRef = useRef<HTMLDivElement>(null);
-  // The cell we are dragging over
-  const [draggedOverCell, setDraggedOverCell] = useState<Cell | null>(null);
 
   useClickAnyWhere(() => {
     if (state.phase === "game" && state.turn === playerID) {
@@ -78,20 +88,24 @@ const GameBoard = ({ className }: GameBoardProps) => {
   }, [count, resetCountdown, setSelectedCell, stopCountdown]);
 
   useEffect(() => {
-    if (!selectedDraggingCell || !draggedOverCell) {
-      return;
-    }
+    console.log(board);
+  }, [board]);
 
-    console.log(selectedDraggingCell);
-    console.log("Dragged over cell", draggedOverCell);
+  // useEffect(() => {
+  //   if (!selectedDraggingCell || !draggedOverCell) {
+  //     return;
+  //   }
 
-    if (selectedDraggingCell.ship) {
-      console.log(
-        "isValid:",
-        isValidPosition(board, selectedDraggingCell.ship, draggedOverCell),
-      );
-    }
-  }, [selectedDraggingCell, draggedOverCell, board]);
+  //   console.log(selectedDraggingCell);
+  //   console.log("Dragged over cell", draggedOverCell);
+
+  //   if (selectedDraggingCell.ship) {
+  //     console.log(
+  //       "isValid:",
+  //       isValidPosition(board, selectedDraggingCell.ship, draggedOverCell),
+  //     );
+  //   }
+  // }, [selectedDraggingCell, draggedOverCell, board]);
 
   const renderCell = (x: number, y: number) => {
     switch (state.phase) {
@@ -131,6 +145,8 @@ const GameBoard = ({ className }: GameBoardProps) => {
       </div>
     );
   }
+
+  // if the board is not fully loaded, show a loading spinner
 
   return (
     <div className={cn(className)}>

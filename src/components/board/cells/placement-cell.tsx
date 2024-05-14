@@ -1,4 +1,4 @@
-import React, { useContext, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 import Default from "../../ducks/default";
 import Scarf from "../../ducks/scarf";
@@ -11,8 +11,7 @@ import {
   moveShip,
   rotateShip,
 } from "../../../lib/utils";
-import { GameContext } from "../../../context/GameContext";
-import { Cell, Ship } from "../../../logic";
+import { Board, Cell, Ship } from "../../../logic";
 import { PlayFunction } from "use-sound";
 import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
@@ -22,28 +21,93 @@ type PlacementCellProps = {
   x: number;
   y: number;
   playSound: PlayFunction;
-  setIsDragging: React.Dispatch<React.SetStateAction<boolean>>;
-  isDragging: boolean;
+  // setIsDragging: React.Dispatch<React.SetStateAction<boolean>>;
+  // isDragging: boolean;
   selectedDraggingCell: Cell | null;
   setSelectedDraggingCell: React.Dispatch<React.SetStateAction<Cell | null>>;
   draggedOverCell: Cell | null;
   setDraggedOverCell: React.Dispatch<React.SetStateAction<Cell | null>>;
+  board: Board;
+  isRotating: boolean;
 };
 
 const PlacementCell: React.FC<PlacementCellProps> = ({
   x,
   y,
   playSound,
-  setIsDragging,
-  isDragging,
+  // setIsDragging,
+  // isDragging,
   selectedDraggingCell,
   setSelectedDraggingCell,
   draggedOverCell,
   setDraggedOverCell,
+  board,
+  isRotating,
 }) => {
-  const { state, playerID, isRotating } = useContext(GameContext);
-  const board = state.boards[playerID];
-  const ref = useRef(null);
+  const prevProps = useRef({
+    x,
+    y,
+    playSound,
+    // setIsDragging,
+    // isDragging,
+    selectedDraggingCell,
+    setSelectedDraggingCell,
+    draggedOverCell,
+    setDraggedOverCell,
+    board,
+    isRotating,
+  });
+
+  useEffect(() => {
+    const changedProps = Object.entries({
+      x,
+      y,
+      playSound,
+      // setIsDragging,
+      // isDragging,
+      selectedDraggingCell,
+      setSelectedDraggingCell,
+      draggedOverCell,
+      setDraggedOverCell,
+      board,
+      isRotating,
+    }).reduce((p, [k, v]) => {
+      if (prevProps.current[k] !== v) {
+        p[k] = [prevProps.current[k], v];
+      }
+      return p;
+    }, {});
+
+    if (Object.keys(changedProps).length > 0) {
+      console.log(x, y, "Changed props:", changedProps);
+    }
+
+    prevProps.current = {
+      x,
+      y,
+      playSound,
+      // setIsDragging,
+      // isDragging,
+      selectedDraggingCell,
+      setSelectedDraggingCell,
+      draggedOverCell,
+      setDraggedOverCell,
+      board,
+      isRotating,
+    };
+  }, [
+    x,
+    y,
+    playSound,
+    // setIsDragging,
+    // isDragging,
+    selectedDraggingCell,
+    setSelectedDraggingCell,
+    draggedOverCell,
+    setDraggedOverCell,
+    board,
+    isRotating,
+  ]);
 
   const selectDuckComponent = () => {
     const ship = board[x][y].ship;
@@ -76,7 +140,9 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
   };
 
   const isBeingDragged = () => {
-    return isDragging && selectedDraggingCell?.ship == board[x][y].ship;
+    return (
+      selectedDraggingCell && selectedDraggingCell?.ship == board[x][y].ship
+    );
   };
 
   const isBeingDraggedOnto = () => {
@@ -84,18 +150,15 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
       return false;
 
     return (
-      isDragging &&
-      draggedOverCell?.x == x &&
+      draggedOverCell.x == x &&
       draggedOverCell.y == y &&
       isValidPosition(board, selectedDraggingCell.ship as Ship, board[x][y])
     );
   };
 
   const onDragStart = () => {
-    console.log("DRAG START");
     if (!hasDuck() || isRotating) return;
 
-    setIsDragging(true);
     setSelectedDraggingCell(board[x][y]);
   };
 
@@ -121,6 +184,8 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
 
     // Get the cell
     const cell = board[Number(cellX)][Number(cellY)];
+
+    if (cell.x === x && cell.y === y) return;
     setDraggedOverCell(cell);
   };
 
@@ -148,9 +213,8 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
   };
 
   const onDragEnd = () => {
-    if (!isDragging || isRotating) return;
-    setIsDragging(false);
-        
+    if (!selectedDraggingCell || isRotating) return;
+
     if (!selectedDraggingCell || !selectedDraggingCell.ship || !draggedOverCell)
       return;
 
@@ -195,9 +259,9 @@ const PlacementCell: React.FC<PlacementCellProps> = ({
       })
     );
   };
+
   return (
     <div
-      ref={ref}
       data-cell="true"
       data-x={x}
       data-y={y}
