@@ -62,20 +62,22 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         if (game.phase !== gamePhase) {
           setGamePhase(game.phase);
         }
-
-        if (game.lastEvent != null) {
-          if (game.winner && game.phase === "game") {
-            Rune.showGameOverPopUp();
-            return;
-          }
-
-          setTimeout(() => {
-            Rune.actions.clearLastEvent();
-          }, EVENT_DURATION);
-        }
       },
     });
   }, [gamePhase]);
+
+  useEffect(() => {
+    if (game.lastEvent != null && game.turn === playerID) {
+      if (game.winner && game.phase === "game") {
+        Rune.showGameOverPopUp();
+        return;
+      }
+
+      setTimeout(() => {
+        Rune.actions.clearLastEvent();
+      }, EVENT_DURATION);
+    }
+  }, [game, playerID]);
 
   return (
     <GameContext.Provider
